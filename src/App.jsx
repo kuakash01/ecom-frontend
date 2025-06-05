@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import AppLayout from "./layouts/user/AppLayout";
 import AppLayoutAdmin from "./layouts/admin/AppLayoutAdmin";
+import Home from "./pages/user/Home";
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout } from './redux/userSlice';
+import { setMobileOpen } from "./redux/themeSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -15,12 +17,26 @@ function App() {
   const ProtectedAdminRoute = ({ element }) => {
     return admin.isAuthenticated ? element : <Navigate to="/admin/signin" />;
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      dispatch(setMobileOpen(window.innerWidth < 1000));
+    };
+
+    // Set initially
+    handleResize();
+
+    // Listen to resize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <Routes>
         {/* protected routes user*/}
         <Route element={<ProtectedRoute element={<AppLayout />} />}>
-          <Route path="/" element={<h1>home</h1>} />
+          <Route path="/" element={<Home/>} />
           <Route path="/dashboard" element={<h1>dashboard</h1>} />
           <Route path="/profile" element={<h1>profile</h1>} />
           <Route path="/settings" element={<h1>settings</h1>} />
