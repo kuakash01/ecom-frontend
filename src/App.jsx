@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
-import AppLayout from "./layouts/user/AppLayout";
-import AppLayoutAdmin from "./layouts/admin/AppLayoutAdmin";
-import Home from "./pages/user/Home";
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout } from './redux/userSlice';
 import { setMobileOpen } from "./redux/themeSlice";
+import AppLayout from "./layouts/user/AppLayout";
+import AppLayoutAdmin from "./layouts/admin/AppLayoutAdmin";
+import Home from "./pages/user/Home";
+import Product from "./pages/user/Product"
 
 function App() {
   const dispatch = useDispatch();
@@ -32,12 +33,12 @@ function App() {
   }, [dispatch]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter >
       <Routes>
         {/* protected routes user*/}
         <Route element={<ProtectedRoute element={<AppLayout />} />}>
           <Route path="/" element={<Home/>} />
-          <Route path="/dashboard" element={<h1>dashboard</h1>} />
+          <Route path="/product" element={<Product/>} />
           <Route path="/profile" element={<h1>profile</h1>} />
           <Route path="/settings" element={<h1>settings</h1>} />
           <Route path="/users" element={<h1>users</h1>} />
@@ -45,6 +46,7 @@ function App() {
           <Route path="/users/:id/edit" element={<h1>edit user</h1>} />
         </Route>
 
+          <Route path="/products" element={<Product/>} />
         {/* protected routes admin*/}
         <Route
           path="/admin"
