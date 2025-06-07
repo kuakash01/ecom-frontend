@@ -18,8 +18,8 @@ function AppLayout() {
       <div className="sticky top-0 z-30">
         <HeaderLayout />
       </div>
-      <div className="flex">
-        <div className="absolute">
+      <div className="flex ">
+        <div className="absolute ">
           <div
             className={`transition-all duration-500 ease-in-out w-[300px] ${
               isSidebarOpen ? "translate-x-0 " : "-translate-x-full"
