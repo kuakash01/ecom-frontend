@@ -8,6 +8,7 @@ import AppLayoutAdmin from "./layouts/admin/AppLayoutAdmin";
 import Home from "./pages/user/Home";
 import Product from "./pages/user/Product"
 import Category from "./pages/user/Category";
+import Cart from "./pages/user/Cart"
 
 function App() {
   const dispatch = useDispatch();
@@ -41,6 +42,7 @@ function App() {
           <Route path="/" element={<Home/>} />
           <Route path="/product" element={<Product/>} />
           <Route path="/category" element={<Category/>} />
+          <Route path="/cart" element={<Cart/>} />
           <Route path="/profile" element={<h1>profile</h1>} />
           <Route path="/settings" element={<h1>settings</h1>} />
           <Route path="/users" element={<h1>users</h1>} />
