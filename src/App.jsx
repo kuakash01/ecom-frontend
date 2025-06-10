@@ -9,6 +9,8 @@ import Home from "./pages/user/Home";
 import Product from "./pages/user/Product"
 import Category from "./pages/user/Category";
 import Cart from "./pages/user/Cart"
+import Dashboard from "./pages/admin/Dashboard";
+
 
 function App() {
   const dispatch = useDispatch();
@@ -50,15 +52,19 @@ function App() {
           <Route path="/users/:id/edit" element={<h1>edit user</h1>} />
         </Route>
 
-          <Route path="/products" element={<Product/>} />
+
+
         {/* protected routes admin*/}
         <Route
           path="/admin"
           element={<ProtectedAdminRoute element={<AppLayoutAdmin />} />}
         >
           <Route index element={<Navigate to="dashboard" />} />
-          <Route path="dashboard" element={<h1>admin dashboard</h1>} />
+          <Route path="dashboard" element={<Dashboard/>} />
         </Route>
+
+
+
 
         {/* auth routes*/}
         <Route path="/signin" element={<h1>signin</h1>} />
