@@ -7,6 +7,7 @@ const themeSlice = createSlice({
         currentTheme: localStorage.getItem('theme') || 'light', // Default theme
         isSidebarOpen: false, // Sidebar visibility state
         isMobileOpen:  true, // Mobile menu visibility state
+        isSideBarHovered: false, // Sidebar hover state
 
     },
     reducers: {
@@ -28,6 +29,9 @@ const themeSlice = createSlice({
          // Toggle mobile menu visibility
         toggleMobileOpen: (state) => {
             state.isMobileOpen = !state.isMenuOpen;
+        },
+        setSideBarHovered: (state, action) => {
+            state.isSideBarHovered = action.payload;
         },
     },
 });
