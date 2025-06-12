@@ -214,7 +214,7 @@ function SidebarLayoutAdmin() {
               </div>
 
               {hasSub && isOpen && shouldShowText && (
-                <ul className={`pl-8 py-1 space-y-1 text-nowrap`}>
+                <ul className={`pl-8 py-1 space-y-1 text-nowrap overflow-hidden`}>
                   {navItem.subItem.map((sub, subIndex) => {
                     const isSubActive = location.pathname === sub.pathName;
                     return (
