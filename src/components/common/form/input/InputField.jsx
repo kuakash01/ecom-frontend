@@ -34,7 +34,8 @@ const Input = ({
         id={id}
         name={name}
         placeholder={placeholder}
-        value={value}
+        // value={value}
+         {...(type !== "file" ? { value: value ?? "" } : {})}
         onChange={onChange}
         min={min}
         max={max}
@@ -46,7 +47,7 @@ const Input = ({
       {hint && (
         <p
           className={`mt-1.5 text-xs ${
-            error
+            error 
               ? "text-error-500"
               : success
               ? "text-success-500"
