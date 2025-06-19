@@ -1,8 +1,17 @@
-const AuthRoutes = [
-  { path: "/signin", element: <h1>signin</h1> },
-  { path: "/signup", element: <h1>signup</h1> },
-  { path: "/admin/signin", element: <h1>admin signin</h1> },
-  { path: "/admin/signup", element: <h1>admin signup</h1> },
+import { lazy } from "react";
+
+// const Login = lazy(() => import("../pages/auth/Login"));
+// const Register = lazy(() => import("../pages/auth/Register"));
+
+const authRoutes = [
+  {
+    path: "login",
+    element: <div>login</div>,
+  },
+  {
+    path: "register",
+    element: <div>register</div>,
+  },
 ];
 
-export default AuthRoutes;
+export default authRoutes;

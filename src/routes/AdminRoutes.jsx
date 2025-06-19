@@ -1,20 +1,40 @@
-import { Navigate, Route } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import AppLayoutAdmin from "../layouts/admin/AppLayoutAdmin";
 import Dashboard from "../pages/admin/Dashboard";
-import Products from "../pages/admin/Products"
+import Products from "../pages/admin/Products";
 
+// A wrapper layout that protects admin routes
 const ProtectedAdminRoute = () => {
   const admin = useSelector((state) => state.admin);
-  return admin.isAuthenticated ? <AppLayoutAdmin /> : <Navigate to="/admin/signin" />;
+  return admin?.isAuthenticated ? <Outlet /> : <Navigate to="/admin/signin" replace />;
 };
 
-const AdminRoutes = () => (
-  <Route path="/admin" element={<ProtectedAdminRoute />}>
-    <Route index element={<Navigate to="dashboard" />} />
-    <Route path="dashboard" element={<Dashboard />} />
-    <Route path="products" element={<Products />} />
-  </Route>
-);
+// Route config for admin routes
+const adminRoutes = {
+  path: "/admin",
+  element: <ProtectedAdminRoute />,
+  children: [
+    {
+      index: true,
+      element: <Navigate to="dashboard" replace />,
+    },
+    {
+      path: "dashboard",
+      element: <Dashboard />,
+    },
+    {
+      path: "products",
+      element: <Products />,
+      loader: async () => {
+        // Simulate loading products data
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ products: [] }); // Replace with actual data fetching logic
+          }, 1000);
+        });
+      },
+    },
+  ],
+};
 
-export default AdminRoutes;
+export default adminRoutes;
