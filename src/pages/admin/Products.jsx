@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLoaderData, useRevalidator } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
+
 
 import Form from "../../components/common/form/Form";
 import Label from "../../components/common/form/Label";
@@ -14,6 +16,8 @@ import {
 } from "../../components/common/ui/table/index";
 
 function Products() {
+  const data = useLoaderData(); // loads data from the loader function
+  const revalidator = useRevalidator(); // used to revalidate the loader data after form submission
   const [addNewProduct, setAddNewProduct] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -59,12 +63,17 @@ function Products() {
       );
       console.log("Product added:", response.data);
       handleCloseModal();
+      revalidator.revalidate(); // ✅ reload loader data
     } catch (error) {
       console.error("Error adding product", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("Data loaded:", data);
+  }, []);
 
   return (
     <div className="relative overflow-auto">
@@ -83,7 +92,7 @@ function Products() {
           <div className="py-5">
             <div className="border p-2 border-gray-300 rounded-2xl">
               <Table className="text-gray-500">
-                <TableHeader>
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] align-text-top ">
                   <TableRow>
                     {[
                       "Sr. no",
@@ -97,27 +106,53 @@ function Products() {
                       "Size",
                       "Action",
                     ].map((heading) => (
-                      <TableCell key={heading}>
+                      <TableCell
+                        key={heading}
+                        isHeader
+                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                      >
                         <div className="text-md">{heading}</div>
                       </TableCell>
                     ))}
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {[1, 2, 3, 4].map((_, index) => (
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {data.data.map((item, index) => (
                     <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <input type="checkbox" />
                       </TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Gallery</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Quantity</TableCell>
-                      <TableCell>Price</TableCell>
-                      <TableCell>Discount</TableCell>
-                      <TableCell>Size</TableCell>
-                      <TableCell>Action</TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>
+                          <img
+                            className="w-24 aspect-square object-cover"
+                            src={`${import.meta.env.VITE_API_URL}${item.image}`}
+                            alt=""
+                          />
+                        </div>
+                      </TableCell >
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">Gallery</TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>{item.name}</div>
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>{item.stock}</div>
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>{item.price}</div>
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>{item.discount}</div>
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <div>{item.size}</div>
+                      </TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        Action
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -7,6 +7,9 @@ import Product from "../pages/user/Product";
 import Category from "../pages/user/Category";
 import Cart from "../pages/user/Cart";
 
+// // loders
+// import getAllProducts from "../pages/admin/dashboardLoader"; // Example API call
+
 // Auth-protected layout wrapper
 const ProtectedRoute = () => {
   const user = useSelector((state) => state.user);
