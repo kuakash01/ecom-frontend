@@ -8,6 +8,8 @@ import { ReactComponent as ArrowDownIcon } from "./arrow-down.svg?react";
 import { ReactComponent as TickIcon } from "./tick.svg?react";
 import { ReactComponent as BinIcon } from "./bin.svg?react";
 import { ReactComponent as DiscountIcon } from "./discount.svg?react";
+import { ReactComponent as HomeIcon } from "./home.svg?react";
+import { ReactComponent as GridIcon } from "./grid.svg?react";
 
     
-export { GreaterThanIcon, LightModeIcon, DarkModeIcon, FilterIcon, ArrowNextIcon, ArrowPrevIcon, ArrowDownIcon, TickIcon, BinIcon, DiscountIcon };
+export { GreaterThanIcon, LightModeIcon, DarkModeIcon, FilterIcon, ArrowNextIcon, ArrowPrevIcon, ArrowDownIcon, TickIcon, BinIcon, DiscountIcon, HomeIcon, GridIcon };

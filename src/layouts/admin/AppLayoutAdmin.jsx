@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 function AppLayoutAdmin() {
   const dispatch = useDispatch();
-  const isSidebarOpen = useSelector((state) => state.theme.isSidebarOpen);
+  const isAdminSidebarOpen = useSelector((state) => state.theme.isAdminSidebarOpen);
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen);
   const isSideBarHovered = useSelector((state) => state.theme.isSideBarHovered);
   // const sidebarWidth = isSidebarOpen ? 300 : 80;
@@ -24,7 +24,7 @@ function AppLayoutAdmin() {
           dispatch({ type: "theme/setSideBarHovered", payload: false })
         }
         className={`transition-all duration-500 ease-in-out hover:w-[300px] ${
-          isSidebarOpen
+          isAdminSidebarOpen
             ? !isMobileOpen
               ? "w-[300px] fixed h-full"
               : "fixed w-[300px] top-0 left-0 translate-x-0 z-30 h-full"
@@ -39,7 +39,7 @@ function AppLayoutAdmin() {
       {/* Main Section */}
       <div
         className={`flex-1 transition-all duration-500 ease-in-out ${
-          !isMobileOpen && (isSidebarOpen || isSideBarHovered) ? "ml-[300px]" : !isMobileOpen ? "ml-20" : ""
+          !isMobileOpen && (isAdminSidebarOpen || isSideBarHovered) ? "ml-[300px]" : !isMobileOpen ? "ml-20" : ""
         }`}
       >
         <div className="sticky top-0 z-50">

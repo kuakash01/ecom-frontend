@@ -1,7 +1,7 @@
 import ThemeToggle from "../../components/common/ThemeToggle";
 import UserDropdown from "../../components/user/header/UserDropdown";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleSidebar } from "../../redux/themeSlice"; // Import the action to toggle sidebar
+import { toggleAdminSidebar } from "../../redux/themeSlice"; // Import the action to toggle sidebar
 
 const HeaderLayoutAdmin = () => {
   const dispatch = useDispatch();
@@ -16,7 +16,7 @@ const HeaderLayoutAdmin = () => {
             <button
               className="cursor-pointer"
               type="button"
-              onClick={() => dispatch(toggleSidebar())}
+              onClick={() => dispatch(toggleAdminSidebar())}
             >
               menu
             </button>

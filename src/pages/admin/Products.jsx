@@ -129,7 +129,7 @@ function Products() {
                         <div>
                           <img
                             className="w-24 aspect-square object-cover"
-                            src={`${import.meta.env.VITE_API_URL}${item.image}`}
+                            src={`${item.image.url}`}
                             alt=""
                           />
                         </div>
