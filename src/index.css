@@ -42,6 +42,9 @@ html {
 --color-brand-dark-50:  #E0C9B3; /* Soft warm beige */
 --color-brand-dark-25:  #F0E1D2; /* Very light for slight highlights */
 
+
+--color-error-500: #F87171; /* Error color */
+--color-success-500: #34D399; /* Success color */
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */

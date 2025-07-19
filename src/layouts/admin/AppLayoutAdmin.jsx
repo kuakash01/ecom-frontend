@@ -45,7 +45,7 @@ function AppLayoutAdmin() {
         <div className="sticky top-0 z-50">
           <HeaderLayoutAdmin />
         </div>
-        <div className="p-5 ">
+        <div className="p-5 max-w-screen">
           <Outlet />
         </div>
       </div>

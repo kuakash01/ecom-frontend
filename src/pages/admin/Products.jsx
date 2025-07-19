@@ -7,6 +7,7 @@ import axios from "axios";
 import Form from "../../components/common/form/Form";
 import Label from "../../components/common/form/Label";
 import Input from "../../components/common/form/input/InputField";
+import Textarea from "../../components/common/form/input/TextArea";
 import {
   Table,
   TableHeader,
@@ -76,21 +77,21 @@ function Products() {
   }, []);
 
   return (
-    <div className="relative overflow-auto">
+    <div className="relative ">
       {!addNewProduct && (
         <div className="relative">
           <div className="flex justify-between">
             <h1 className="text-2xl">Manage Products</h1>
             <button
               onClick={handleOpenModal}
-              className="bg-black px-3 py-2 text-white rounded-md"
+              className="bg-black px-3 py-2 text-white rounded-md cursor-pointer hover:bg-gray-800 transition-colors duration-300"
             >
               Add New Product
             </button>
           </div>
 
-          <div className="py-5">
-            <div className="border p-2 border-gray-300 rounded-2xl">
+          <div className="py-5 ">
+            <div className="border p-2 border-gray-300 rounded-2xl overflow-auto">
               <Table className="text-gray-500">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] align-text-top ">
                   <TableRow>
@@ -171,7 +172,7 @@ function Products() {
               {/* Product Name */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Product Name <span className="text-red-400">*</span>
+                  Name <span className="text-red-400">*</span>
                 </Label>
                 <Controller
                   name="productName"
@@ -191,7 +192,7 @@ function Products() {
               {/* Price */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Product Price <span className="text-red-400">*</span>
+                  Price <span className="text-red-400">*</span>
                 </Label>
                 <Controller
                   name="price"
@@ -208,11 +209,31 @@ function Products() {
                   )}
                 />
               </div>
+              {/* mrp  */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  Mrp <span className="text-red-400">*</span>
+                </Label>
+                <Controller
+                  name="mrp"
+                  control={control}
+                  rules={{ required: "MRP is required." }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      type="number"
+                      placeholder="Product Price"
+                      error={!!fieldState.error}
+                      hint={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </div>
 
               {/* Size */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Product Size <span className="text-red-400">*</span>
+                 Size <span className="text-red-400">*</span>
                 </Label>
                 <Controller
                   name="size"
@@ -240,6 +261,17 @@ function Products() {
                   )}
                 />
               </div>
+              {/* Sub Category */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>Sub Category</Label>
+                <Controller
+                  name="subCategory"
+                  control={control}
+                  render={({ field }) => (
+                    <Input {...field} placeholder="Sub Category" />
+                  )}
+                />
+              </div>
 
               {/* Quantity */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
@@ -264,7 +296,7 @@ function Products() {
               {/* Product Image */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Product Image <span className="text-red-400">*</span>
+                  Image <span className="text-red-400">*</span>
                 </Label>
                 <Controller
                   name="productImage"
@@ -277,6 +309,54 @@ function Products() {
                       error={!!fieldState.error}
                       hint={fieldState.error?.message}
                     />
+                  )}
+                />
+              </div>
+
+              {/* SKU */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  SKU <span className="text-red-400">*</span>
+                </Label>
+                <Controller
+                  name="sku"
+                  control={control}
+                  rules={{ required: "SKU is required." }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      placeholder="SKU"
+                      error={!!fieldState.error}
+                      hint={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  Tags 
+                </Label>
+                <Controller
+                  name="tags"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      placeholder="Tags (comma separated)"
+                    />
+                  )}
+                />
+              </div>
+               {/* Category */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>Description</Label>
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <Textarea {...field} placeholder="Description" />
                   )}
                 />
               </div>

@@ -10,6 +10,9 @@ import { ReactComponent as BinIcon } from "./bin.svg?react";
 import { ReactComponent as DiscountIcon } from "./discount.svg?react";
 import { ReactComponent as HomeIcon } from "./home.svg?react";
 import { ReactComponent as GridIcon } from "./grid.svg?react";
+import { ReactComponent as ProductHighlightIcon } from "./product-highlight.svg?react";
+import { ReactComponent as HamBurgerOpenIcon } from "./hamburger-open.svg?react";
+import { ReactComponent as HamBurgerCloseIcon } from "./hamburger-closed.svg?react";
 
     
-export { GreaterThanIcon, LightModeIcon, DarkModeIcon, FilterIcon, ArrowNextIcon, ArrowPrevIcon, ArrowDownIcon, TickIcon, BinIcon, DiscountIcon, HomeIcon, GridIcon };
+export { GreaterThanIcon, LightModeIcon, DarkModeIcon, FilterIcon, ArrowNextIcon, ArrowPrevIcon, ArrowDownIcon, TickIcon, BinIcon, DiscountIcon, HomeIcon, GridIcon, ProductHighlightIcon, HamBurgerOpenIcon, HamBurgerCloseIcon };

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSidebar } from "../../redux/themeSlice";
 import { Link, useLocation } from "react-router-dom";
-import { BinIcon, ArrowDownIcon, GridIcon } from "../../icons";
+import { BinIcon, ArrowDownIcon, GridIcon, ProductHighlightIcon, } from "../../icons";
 
 function SidebarLayoutAdmin() {
   const dispatch = useDispatch();
@@ -28,7 +28,7 @@ function SidebarLayoutAdmin() {
     },
     {
       name: "Product Management",
-      icon: <BinIcon />,
+      icon: <ProductHighlightIcon />,
       subItem: [
         { name: "products", pathName: "/admin/products" },
         { name: "Category", pathName: "/admin/category" },
@@ -53,8 +53,8 @@ function SidebarLayoutAdmin() {
                 onClick={() => hasSub && toggleSubmenu(navItem.name)}
               >
                 {hasSub ? (
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="text-2xl">
+                  <div className="flex items-center gap-2 w-full ">
+                    <span className="text-2xl ">
                       {navItem.icon}
                     </span>
                     <span
@@ -125,9 +125,9 @@ function SidebarLayoutAdmin() {
 
     >
       {!isMobileOpen && (
-        <div className="flex items-center overflow-hidden">
+        <div className="flex items-start overflow-hidden p-4 gap-2">
           <img
-            className="w-[120px] max-w-full py-3 rounded-xl px-4 object-contain"
+            className="w-[100px] max-w-full  rounded-lg  object-contain"
             src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
             alt="logo"
           />
