@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import api from "../../config/axios"; // Adjust the path as necessary
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -12,17 +13,12 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     try {
-      // TODO: Replace with your API call
-      if (formData.email === "admin@gmail.com" && formData.password === "admin123") {
-        alert("Login successful!");
-        // Redirect or store token
-      } else {
-        setError("Invalid credentials");
-      }
+      const response = await api.post("auth/admin/signin", formData);
+      console.log("Login successful:", response.data);
     } catch (err) {
       setError("Something went wrong. Try again.");
+      console.error("Login error:", err);
     }
   };
 

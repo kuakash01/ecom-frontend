@@ -1,10 +1,11 @@
 import axios from 'axios';
 import Loading from '../../components/common/ui/loading/Loading';
+import api from '../../config/axios'; // Import your axios instance
 
 
 const dashboardLoader = async()=>{
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/all-products`);
+        const response = await api.get(`products/all-products`);
         // console.log("Products fetched successfully:", response.data);
         return response.data;
     } catch (error) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLoaderData, useRevalidator } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
+import api from "../../config/axios"; // Import your axios instance
 
 
 import Form from "../../components/common/form/Form";
@@ -58,8 +59,8 @@ function Products() {
       //   console.log(`${key}:`, value);
       // }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/products/add`,
+      const response = await api.post(
+        `/products/add`,
         formData
       );
       console.log("Product added:", response.data);

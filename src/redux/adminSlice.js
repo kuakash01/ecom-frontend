@@ -18,6 +18,7 @@ const adminSlice = createSlice({
         updateAdmin: (state, action) => {
             state.adminInfo = { ...state.adminInfo, ...action.payload }; // Update admin details
         },
+        
     },
 });
 
