@@ -4,28 +4,29 @@ import { RouterProvider } from "react-router-dom";
 import { setMobileOpen } from "./redux/themeSlice";
 import router from "./routes"; // This imports your createBrowserRouter instance
 import Loading from "./components/common/ui/loading/Loading"
-import { checkAuth } from "./services/authService";
+// import { checkAuth } from "./services/authService";
+import { history } from "./utils/navigateHelper";
 
 
 
 function App() {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.admin.isAuthenticated);
+  // const isAuthenticated = useSelector((state) => state.admin.isAuthenticated);
   
-  useEffect(() => {
-    const verifyUser = async () => {
-      const user = await checkAuth();
-      console.log("is authenticated:", isAuthenticated);
-      if (user) {
-        console.log("User is authenticated:", user);
+  // useEffect(() => {
+  //   const verifyUser = async () => {
+  //     const user = await checkAuth();
+  //     console.log("is authenticated:", isAuthenticated);
+  //     if (user) {
+  //       console.log("User is authenticated:", user);
 
-      } else {
-        console.log("User is not authenticated");
-      }
+  //     } else {
+  //       console.log("User is not authenticated");
+  //     }
 
-    }
-    verifyUser();
-  }, [])
+  //   }
+  //   verifyUser();
+  // }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -38,7 +39,7 @@ function App() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} history={history} />
     </Suspense>
   );
 }

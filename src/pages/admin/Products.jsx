@@ -92,8 +92,8 @@ function Products() {
           </div>
 
           <div className="py-5 ">
-            <div className="border p-2 border-gray-300 rounded-2xl overflow-auto">
-              <Table className="text-gray-500">
+            <div className="border p-2 border-gray-300 rounded-2xl overflow-auto max-w-full lg:max-w-[1000px]">
+              <Table className="text-gray-500 ">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] align-text-top ">
                   <TableRow>
                     {[

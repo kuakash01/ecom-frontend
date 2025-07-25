@@ -1,6 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSidebar } from "../../redux/themeSlice";
+import { Link } from "react-router-dom";
 
 function SidebarLayout() {
   const dispatch = useDispatch();
@@ -19,20 +20,16 @@ function SidebarLayout() {
         <div>
           <ul className={`py-3 ${isSidebarOpen ? "block" : "hidden"}`}>
             <li className="text-center py-3 m-2 rounded-md hover:bg-white/20 dark:hover:bg-white/8">
-              home
+              <Link to="/product">product</Link>
             </li>
             <li className="text-center py-3 m-2 rounded-md hover:bg-white/20 dark:hover:bg-white/8">
-              home
+              <Link to="/category">category</Link>
             </li>
             <li className="text-center py-3 m-2 rounded-md hover:bg-white/20 dark:hover:bg-white/8">
-              home
+              <Link to="/cart">cart</Link>
             </li>
-            <li className="text-center py-3 m-2 rounded-md hover:bg-white/20 dark:hover:bg-white/8">
-              home
-            </li>
-            <li className="text-center py-3 m-2 rounded-md hover:bg-white/20 dark:hover:bg-white/8">
-              home
-            </li>
+            
+           
           </ul>
         </div>
       </div>
