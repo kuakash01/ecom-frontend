@@ -7,26 +7,15 @@ import Loading from "./components/common/ui/loading/Loading"
 // import { checkAuth } from "./services/authService";
 import { history } from "./utils/navigateHelper";
 
+// toast 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 
 function App() {
   const dispatch = useDispatch();
-  // const isAuthenticated = useSelector((state) => state.admin.isAuthenticated);
-  
-  // useEffect(() => {
-  //   const verifyUser = async () => {
-  //     const user = await checkAuth();
-  //     console.log("is authenticated:", isAuthenticated);
-  //     if (user) {
-  //       console.log("User is authenticated:", user);
 
-  //     } else {
-  //       console.log("User is not authenticated");
-  //     }
-
-  //   }
-  //   verifyUser();
-  // }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -39,6 +28,7 @@ function App() {
 
   return (
     <Suspense fallback={<Loading />}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <RouterProvider router={router} history={history} />
     </Suspense>
   );

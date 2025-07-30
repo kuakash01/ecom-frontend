@@ -38,14 +38,14 @@ function AppLayoutAdmin() {
 
       {/* Main Section */}
       <div
-        className={`flex-1 transition-all duration-500 ease-in-out ${
+        className={`flex-1  transition-all duration-500 ease-in-out ${
           !isMobileOpen && (isAdminSidebarOpen || isSideBarHovered) ? "ml-[300px]" : !isMobileOpen ? "ml-20" : ""
         }`}
       >
         <div className="sticky top-0 z-50">
           <HeaderLayoutAdmin />
         </div>
-        <div className="p-5 max-w-screen">
+        <div className="p-5 max-w-screen lg:max-w-full flex justify-center items-center">
           <Outlet />
         </div>
       </div>

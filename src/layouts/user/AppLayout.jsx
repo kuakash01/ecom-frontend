@@ -12,9 +12,9 @@ function AppLayout() {
   return (
     <div className="  bg-white dark:bg-black/30 relative ">
       {/* Sidebar */}
-      <div className="relative z-50">
+      {!isMobileOpen &&<div className="relative z-50">
         <div className="topbar  bg-black text-white p-1">topbar</div>
-      </div>
+      </div>}
       <div className="sticky top-0 z-30">
         <HeaderLayout />
       </div>

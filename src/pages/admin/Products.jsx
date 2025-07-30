@@ -3,6 +3,7 @@ import { useLoaderData, useRevalidator } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import api from "../../config/axios"; // Import your axios instance
+import { toast } from "react-toastify";
 
 
 import Form from "../../components/common/form/Form";
@@ -73,6 +74,32 @@ function Products() {
     }
   };
 
+  const handleDeleteItem = async (item)=>{
+    console.log("handleDeleteItem", item._id)
+    const toastId = toast.loading("Removing Item...")
+    try {
+      const response = await api.post("/products/delete", {
+        id: item._id
+      });
+      console.log("response delete", response)
+      toast.update(toastId, {
+        render: "Product Removed Successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+      revalidator.revalidate();
+    } catch (error) {
+      console.error("Error Removing Item")
+      toast.update(toastId, {
+        render: "Error in Removing Item",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+  }
+
   useEffect(() => {
     console.log("Data loaded:", data);
   }, []);
@@ -92,7 +119,7 @@ function Products() {
           </div>
 
           <div className="py-5 ">
-            <div className="border p-2 border-gray-300 rounded-2xl overflow-auto max-w-full lg:max-w-[1000px]">
+            <div className="border p-2 border-gray-300 rounded-2xl overflow-auto max-w-full ">
               <Table className="text-gray-500 ">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] align-text-top ">
                   <TableRow>
@@ -111,7 +138,7 @@ function Products() {
                       <TableCell
                         key={heading}
                         isHeader
-                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        className="px-5 py-3 text-xs font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                       >
                         <div className="text-md">{heading}</div>
                       </TableCell>
@@ -121,13 +148,13 @@ function Products() {
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                   {data.data.map((item, index) => (
                     <TableRow key={index}>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         {index + 1}
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <input type="checkbox" />
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>
                           <img
                             className="w-24 aspect-square object-cover"
@@ -136,24 +163,25 @@ function Products() {
                           />
                         </div>
                       </TableCell >
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">Gallery</TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">Gallery</TableCell>
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>{item.name}</div>
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>{item.stock}</div>
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>{item.price}</div>
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>{item.discount}</div>
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         <div>{item.size}</div>
                       </TableCell>
-                      <TableCell className="sm:px-6  px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         Action
+                        <span onClick={()=>handleDeleteItem(item)}>delete</span>
                       </TableCell>
                     </TableRow>
                   ))}

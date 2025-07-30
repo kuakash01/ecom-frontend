@@ -22,7 +22,7 @@ function UserDropdown() {
             const response = await signout();
             if (response.type === "signout") {
                 dispatch(logout());
-                window.location.replace("/admin/signin"); 
+                navigate("/admin/signin"); 
             }
 
         } catch (error) {
