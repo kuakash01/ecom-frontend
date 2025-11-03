@@ -57,7 +57,7 @@ function UserDropdown() {
                 </div>
             </button>
             {isOpen && (
-                <div className="absolute right-0 bg-white shadow-lg rounded-md mt-4  w-48">
+                <div className="absolute right-2 top-20  shadow-lg rounded-md   w-48 bg-admin-light-500 dark:bg-admin-dark-800 text-black dark:text-white">
                     <ul className="py-2">
                         <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Profile</li>
                         <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Settings</li>

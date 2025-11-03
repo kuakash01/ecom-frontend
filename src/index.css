@@ -43,6 +43,32 @@ html {
 --color-brand-dark-25:  #F0E1D2; /* Very light for slight highlights */
 
 
+/* admin panel colors */
+
+  /* === Admin Neutral Dark Theme === */
+--color-admin-dark-900: #0B1120; /* Main background (deep navy black) */
+  --color-admin-dark-800: #111827; /* Sidebar (midnight navy) */
+  --color-admin-dark-700: #1E293B; /* Panels / cards */
+  --color-admin-dark-600: #273449; /* Secondary panels */
+  --color-admin-dark-500: #334155; /* Borders / table headers */
+  --color-admin-dark-400: #475569; /* Muted text */
+  --color-admin-dark-300: #64748B; /* Secondary text */
+  --color-admin-dark-200: #94A3B8; /* Disabled / lighter text */
+  --color-admin-dark-100: #CBD5E1; /* Inputs / light surfaces */
+  --color-admin-dark-50:  #F1F5F9; /* Hover / very light */
+
+  /* === Admin Light Theme === */
+  --color-admin-light-900: #FFFFFF; /* Main background */
+  --color-admin-light-800: #FCFCFC; /* Workspace bg */
+  --color-admin-light-700: #F7F7F7; /* Sidebar bg */
+  --color-admin-light-600: #F2F2F2; /* Card bg */
+  --color-admin-light-500: #EAEAEA; /* Borders */
+  --color-admin-light-400: #DCDCDC; /* Muted border */
+  --color-admin-light-300: #C7C7C7; /* Secondary text */
+  --color-admin-light-200: #9E9E9E; /* Disabled text */
+  --color-admin-light-100: #5C5C5C; /* Body text */
+  --color-admin-light-50:  #1A1A1A; /* Heading text */
+
 --color-error-500: #F87171; /* Error color */
 --color-success-500: #34D399; /* Success color */
   }

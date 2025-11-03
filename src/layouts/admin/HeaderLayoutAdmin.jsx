@@ -13,7 +13,7 @@ const HeaderLayoutAdmin = () => {
   
   return (
     <>
-      <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-brand-300 text-black dark:text-white p-4 shadow-md sticky top-0 z-50 ">
+      <nav className="flex justify-between items-center dark:bg-admin-dark-800 bg-admin-light-500 text-black dark:text-white p-4 shadow-md sticky top-0 z-50 ">
         <div className="flex gap-4 items-center">
 
           <button

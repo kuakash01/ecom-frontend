@@ -10,6 +10,7 @@ const themeSlice = createSlice({
         isSideBarHovered: false, // Sidebar hover state
 
         isAdminSidebarOpen: true, // Sidebar visibility state
+        isLoading: false, // Loading state
     },
     reducers: {
         setTheme: (state, action) => {
@@ -42,8 +43,12 @@ const themeSlice = createSlice({
         toggleAdminSidebar: (state) => {
             state.isAdminSidebarOpen = !state.isAdminSidebarOpen;
         },
+        // Set loading state
+        setLoading: (state, action) => {
+            state.isLoading = action.payload;
+        },
     },
 });
 
-export const { setTheme, toggleTheme, setSidebar, toggleSidebar, setMobileOpen, toggleMobileOpen, setAdminSidebar, toggleAdminSidebar } = themeSlice.actions;
+export const { setTheme, toggleTheme, setSidebar, toggleSidebar, setMobileOpen, toggleMobileOpen, setAdminSidebar, toggleAdminSidebar, setLoading } = themeSlice.actions;
 export default themeSlice.reducer;

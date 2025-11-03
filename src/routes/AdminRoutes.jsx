@@ -5,13 +5,18 @@ import { useSelector, useDispatch } from "react-redux";
 const Dashboard = lazy(() => import("../pages/admin/Dashboard"));
 const Products = lazy(() => import("../pages/admin/Products"));
 const AppLayoutAdmin = lazy(() => import("../layouts/admin/AppLayoutAdmin"));
+const ManageCategories = lazy(() => import("../pages/admin/ManageCategories"));
+const Orders = lazy(() => import("../pages/admin/Orders"));
 import { login } from "../redux/adminSlice";
 import { checkAuth } from "../services/authService"; // Adjust the path as necessary
 import Loading from "../components/common/ui/loading/Loading";
 import AdminLogin from "../pages/admin/AdminLogin";
 // loders
-import dashboardLoader from "../pages/admin/dashboardLoader"; // Example API call
+import ProductsLoader from "../pages/admin/ProductsLoader"; // Example API call
+import OrdersLoader from "../pages/admin/OrdersLoader";
+import CategoriesLoader from "../pages/admin/CategoriesLoader";
 import { useEffect } from "react";
+
 
 
 
@@ -51,32 +56,6 @@ const ProtectedAdminRoute = () => {
   );
 };
 
-// Route config for admin routes
-// const adminRoutes = {
-//   path: "/admin",
-//   element: <ProtectedAdminRoute />,   // no children here
-//   children: [
-//     {
-//       path: "",
-//       element: <AppLayoutAdmin />,
-//       children: [
-//         {
-//           index: true,
-//           element: <Navigate to="dashboard" replace />,
-//         },
-//         {
-//           path: "dashboard",
-//           element: <Dashboard />,
-//         },
-//         {
-//           path: "products",
-//           element: <Products />,
-//           loader: dashboardLoader,
-//         },
-//       ],
-//     },
-//   ],
-// };
 
 
 // In your adminRoutes config
@@ -96,7 +75,9 @@ const adminRoutes = {
           children: [
             { index: true, element: <Navigate to="dashboard" replace /> },
             { path: "dashboard", element: <Dashboard /> },
-            { path: "products", element: <Products />, loader: dashboardLoader },
+            { path: "products", element: <Products />, loader: ProductsLoader },
+            { path: "category", element: <ManageCategories />, loader: CategoriesLoader },
+            { path: "orders", element: <Orders />, loader: OrdersLoader},
           ],
         },
       ],

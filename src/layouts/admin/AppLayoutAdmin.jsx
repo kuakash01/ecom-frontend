@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import HeaderLayoutAdmin from "./HeaderLayoutAdmin";
 import SidebarLayoutAdmin from "./SidebarLayoutAdmin";
 import { useSelector, useDispatch } from "react-redux";
+import Loading from "../../components/common/ui/loading/Loading";
 
 function AppLayoutAdmin() {
   const dispatch = useDispatch();
@@ -12,9 +13,11 @@ function AppLayoutAdmin() {
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen);
   const isSideBarHovered = useSelector((state) => state.theme.isSideBarHovered);
   // const sidebarWidth = isSidebarOpen ? 300 : 80;
+  const { isLoading } = useSelector((state) => state.theme);
 
   return (
-    <div className="flex bg-white dark:bg-black/30 relative">
+    <div className="flex relative">
+      {isLoading && <Loading />}
       {/* Sidebar */}
       <div
         onMouseEnter={() =>
@@ -45,7 +48,7 @@ function AppLayoutAdmin() {
         <div className="sticky top-0 z-50">
           <HeaderLayoutAdmin />
         </div>
-        <div className="p-5 max-w-screen lg:max-w-full flex justify-center items-center">
+        <div className="p-2 md:p-5 max-w-screen lg:max-w-full flex justify-center items-center">
           <Outlet />
         </div>
       </div>

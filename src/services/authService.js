@@ -2,7 +2,7 @@ import api from "../config/axios"; // Adjust the path as necessary
 
 export const checkAuth = async () => {
     try {
-        const res = await api.get('auth/admin/me', {
+        const res = await api.get('auth/me', {
             withCredentials: true,
             headers: {
                 'Cache-Control': 'no-cache',
@@ -18,7 +18,7 @@ export const checkAuth = async () => {
 
 export const signout = async () => {
     try {
-        const res = await api.get('auth/admin/signout');
+        const res = await api.get('auth/signout');
         return res.data;
     } catch (err) {
         return null;

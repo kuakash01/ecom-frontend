@@ -32,6 +32,7 @@ function SidebarLayoutAdmin() {
       subItem: [
         { name: "products", pathName: "/admin/products" },
         { name: "Category", pathName: "/admin/category" },
+        { name: "Orders", pathName: "/admin/orders" },
       ],
     },
   ];
@@ -49,7 +50,7 @@ function SidebarLayoutAdmin() {
           return (
             <li key={index}>
               <div
-                className={`flex items-center justify-between cursor-pointer p-2 rounded transition-all duration-300 ${isActive ? "bg-white/30 font-bold" : "hover:bg-white/10"} text-nowrap overflow-hidden`}
+                className={`flex items-center justify-between cursor-pointer p-2 rounded transition-all duration-300 ${isActive ? "bg-black/10 font-bold dark:bg-white/10" : "hover:bg-black/10 dark:hover:bg-white/10"} text-nowrap overflow-hidden`}
                 onClick={() => hasSub && toggleSubmenu(navItem.name)}
               >
                 {hasSub ? (
@@ -67,7 +68,7 @@ function SidebarLayoutAdmin() {
                 ) : (
                   <Link
                     to={navItem.pathName}
-                    className={`flex items-center gap-2 w-full transition-all duration-300 ${isActive ? "text-brand-900" : ""}`}
+                    className={`flex items-center gap-2 w-full transition-all duration-300 ${isActive ? "text-black dark:text-white" : ""}`}
                   >
                     <span className="text-2xl">
                       {navItem.icon}
@@ -83,7 +84,7 @@ function SidebarLayoutAdmin() {
 
                 {hasSub && (
                   <ArrowDownIcon
-                    className={`text-xl transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+                    className={`text-xl text-black dark:text-white transition-transform duration-300 ${isOpen ? "rotate-180" : ""
                       } ${shouldShowText ? "opacity-100 inline" : "opacity-0 hidden"}`}
                   />
                 )}
@@ -121,7 +122,7 @@ function SidebarLayoutAdmin() {
 
   return (
     <div
-      className={`h-screen min-w-[60px] flex flex-col bg-brand-300 dark:bg-brand-dark-500 border-r text-black dark:text-white relative z-50 transition-all duration-300`}
+      className={`h-screen min-w-[60px] flex flex-col bg-admin-light-500 dark:bg-admin-dark-800 border-r border-gray-200 dark:border-gray-500 text-black dark:text-white relative z-50 transition-all duration-300`}
 
     >
       {!isMobileOpen && (

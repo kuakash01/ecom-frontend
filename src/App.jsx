@@ -29,7 +29,7 @@ function App() {
   return (
     <Suspense fallback={<Loading />}>
       <ToastContainer position="top-right" autoClose={3000} />
-      <RouterProvider router={router} history={history} />
+      <RouterProvider router={router} history={history}  />
     </Suspense>
   );
 }
