@@ -51,11 +51,12 @@ function Products() {
 
   const [currentEditId, setCurrentEditId] = useState("")
 
-
   const {
     control,
     handleSubmit,
     reset,
+    resetField,
+    unregister,
     formState: { errors },
   } = useForm();
 
@@ -80,7 +81,11 @@ function Products() {
       const value = Object.values(
         categoryLevel.reduce((a, b) => +Object.keys(a)[0].slice(13) > +Object.keys(b)[0].slice(13) ? a : b)
       )[0];
-      formData.append("category", value);
+      if(typeof value !== "string")
+      formData.append("category", typeof value === "string" ? value : value._id
+);
+      // console.log("value", value)
+
 
       for (const key in data) {
         // Handle category level separately
@@ -105,9 +110,11 @@ function Products() {
         formData.append(key, data[key]);
       }
 
+
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
       }
+
 
       const url = editProduct
         ? `/admin/products/${currentEditId}`
@@ -140,7 +147,6 @@ function Products() {
       setAddNewProduct(false);
     }
   };
-
 
 
   const handleDeleteItem = async (item) => {
@@ -180,43 +186,50 @@ function Products() {
 
 
   const handleCategoryChange = async (levelIndex, selected) => {
+  const updatedLevels = [...categoryLevels];
+  updatedLevels[levelIndex].selected = selected;
+
+  // Remove levels below current
+  const removedLevels = updatedLevels.splice(levelIndex + 1);
+
+  // Update state first
+  setCategoryLevels(updatedLevels);
+
+  // Unregister removed fields
+  removedLevels.forEach((_, idx) => {
+    const fieldName = `categoryLevel${levelIndex + 1 + idx}`;
+    unregister(fieldName);
+  });
+
+  // Fetch children and add new level if needed
+  if (selected) {
     try {
-      // Update the current selection
-      const updatedLevels = [...categoryLevels];
-      updatedLevels[levelIndex].selected = selected;
-
-      // Remove any levels below this one (in case user goes back and changes)
-      updatedLevels.splice(levelIndex + 1);
-
-      // Fetch children for the selected category
-      const res = await api.get(`/admin/categories/${selected}/children`);
-      const children = res.data.data;
-
-      // If there are subcategories, add a new level
-      if (children.length > 0) {
-        updatedLevels.push({ options: children, selected: null });
-      }
-
-      setCategoryLevels(updatedLevels);
-      console.log("Updated category levels:", updatedLevels);
-    } catch (error) {
-      console.error("Error fetching next-level categories:", error);
+    const res = await api.get(`/admin/categories/${selected._id}/children`);
+    const children = res.data.data;
+    if (children.length > 0) {
+      setCategoryLevels((prev) => [...prev, { options: children, selected: null }]);
     }
-  };
+     } catch (error) {
+      console.error("Error updating category levels:", error);
+     }
+  }
+};
+
+
 
 
 
   const handleEditProduct = async (product) => {
+    setCurrentEditId(product._id);
     try {
 
-      console.log("Editing product:", product);
 
-      setCurrentEditId(product._id)
       dispatch(setLoading(true));
       // Fetch the full category chain for this product
       const chainRes = await api.get(`/admin/categories/${product.category}/chain`);
       const chain = chainRes.data.data;
 
+      // console.log("Category Chain:", chain);
 
       const updatedLevels = [];
 
@@ -246,7 +259,7 @@ function Products() {
       updatedLevels.forEach((level, index) => {
         categoryData[`categoryLevel${index}`] = level.selected._id;
       });
-      console.log("autofill details", product)
+
       reset({
         name: product.name || "",
         price: product.price || "",
@@ -262,10 +275,6 @@ function Products() {
       });
 
       setEditProduct(true);
-
-
-
-      console.log("Form autofilled successfully:", { ...product, ...categoryData });
     } catch (error) {
       console.error("Error during edit product setup:", error);
     }
@@ -304,6 +313,19 @@ function Products() {
     setGalleryPreviews(gallery);
     setShowModal(true);
   }
+
+  useEffect(() => {
+    const fetchRootCategories = async () => {
+      try {
+        const res = await api.get("/admin/categories/root");
+        setCategoryLevels([{ options: res.data.data, selected: null }]);
+      } catch (error) {
+        console.error("Error fetching root categories:", error);
+      }
+    };
+
+    fetchRootCategories();
+  }, []);
 
 
   return (
@@ -525,7 +547,7 @@ function Products() {
 
 
               {/*  Category */}
-              {categoryLevels.map((level, index) => (
+              {/* {categoryLevels.map((level, index) => (
                 <div
                   key={index}
                   className="col-span-12 md:col-span-6 lg:col-span-4"
@@ -554,7 +576,47 @@ function Products() {
                     )}
                   />
                 </div>
+              ))} */}
+              {/* Category */}
+              {categoryLevels.map((level, index) => (
+                <div
+                  key={index}
+                  className="col-span-12 md:col-span-6 lg:col-span-4"
+                >
+                  <Label>
+                    {index === 0 ? "Category" : `Subcategory Level ${index}`}
+                    <span className="text-red-400">*</span>
+                  </Label>
+
+                  <Controller
+                    name={`categoryLevel${index}`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={level.options.map(cat => ({
+                          value: cat._id,
+                          label: cat.name,
+                        }))}
+                        placeholder="Select Category"
+                        // For add product, selected can start as null
+                        value={level.selected ? level.selected._id : ""}
+                        onChange={(selectedId) => {
+                          // Find the object for this ID
+                          const selectedCategory = level.options.find(cat => cat._id === selectedId) || null;
+
+                          // Update react-hook-form field
+                          field.onChange(selectedCategory);
+
+                          // Update categoryLevels and fetch child categories
+                          handleCategoryChange(index, selectedCategory);
+                        }}
+                      />
+                    )}
+                  />
+                </div>
               ))}
+
 
 
 
@@ -917,39 +979,47 @@ function Products() {
 
 
               {/*  Category */}
-              {categoryLevels.map((level, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="col-span-12 md:col-span-6 lg:col-span-4"
-                  >
-                    <Label>
-                      {index === 0 ? "Category" : `Subcategory Level ${index}`}
-                      <span className="text-red-400">*</span>
-                    </Label>
-                    <Controller
-                      name={`categoryLevel${index}`}
-                      control={control}
-                      render={({ field }) => (
+              {categoryLevels.map((level, index) => (
+                <div
+                  key={index}
+                  className="col-span-12 md:col-span-6 lg:col-span-4"
+                >
+                  <Label>
+                    {index === 0 ? "Category" : `Subcategory Level ${index}`}
+                    <span className="text-red-400">*</span>
+                  </Label>
+
+                  <Controller
+                    name={`categoryLevel${index}`}
+                    control={control}
+                    render={({ field }) => {
+                      const currentValue = level.selected?._id || "";
+
+                      return (
                         <Select
                           {...field}
+                          value={currentValue}
                           options={level.options.map(cat => ({
                             value: cat._id,
                             label: cat.name,
                           }))}
                           placeholder="Select Category"
-                          defaultValue={level.selected}
-                          onChange={(selected) => {
-                            console.log("onchange category, index:", index, "selected:", selected);
-                            field.onChange(selected);
-                            handleCategoryChange(index, selected);
+                          onChange={(value) => {
+                            const selectedOption = level.options.find(cat => cat._id === value);
+                            const selectedCategory = selectedOption
+                              ? { _id: selectedOption._id, name: selectedOption.name }
+                              : null;
+
+                            field.onChange(selectedCategory);
+                            handleCategoryChange(index, selectedCategory);
                           }}
                         />
-                      )}
-                    />
-                  </div>
-                )
-              })}
+                      );
+                    }}
+                  />
+
+                </div>
+              ))}
 
 
 
