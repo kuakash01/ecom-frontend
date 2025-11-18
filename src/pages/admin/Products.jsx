@@ -12,6 +12,7 @@ import Label from "../../components/common/form/Label";
 import Input from "../../components/common/form/input/InputField";
 import Textarea from "../../components/common/form/input/TextArea";
 import Select from "../../components/common/form/Select";
+import Checkbox from "../../components/common/form/input/Checkbox";
 import {
   Table,
   TableHeader,
@@ -24,6 +25,8 @@ import ImagePreviewModal from "../../components/common/modal/ImagePreviewModal";
 
 import { Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import ReactSelect from 'react-select';
+
 
 
 
@@ -81,9 +84,9 @@ function Products() {
       const value = Object.values(
         categoryLevel.reduce((a, b) => +Object.keys(a)[0].slice(13) > +Object.keys(b)[0].slice(13) ? a : b)
       )[0];
-      if(typeof value !== "string")
-      formData.append("category", typeof value === "string" ? value : value._id
-);
+      if (typeof value !== "string")
+        formData.append("category", typeof value === "string" ? value : value._id
+        );
       // console.log("value", value)
 
 
@@ -112,7 +115,7 @@ function Products() {
 
 
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
+        console.log(`${key}:`, value, );
       }
 
 
@@ -122,7 +125,7 @@ function Products() {
 
       const method = editProduct ? "patch" : "post";
 
-      await api[method](url, formData);
+      // await api[method](url, formData);
 
       toast.update(toastId, {
         render: editProduct ? "Product Updated" : "Product Added",
@@ -186,80 +189,82 @@ function Products() {
 
 
   const handleCategoryChange = async (levelIndex, selected) => {
-  const updatedLevels = [...categoryLevels];
-  updatedLevels[levelIndex].selected = selected;
+    const updatedLevels = [...categoryLevels];
+    updatedLevels[levelIndex].selected = selected;
 
-  // Remove levels below current
-  const removedLevels = updatedLevels.splice(levelIndex + 1);
+    // Remove levels below current
+    const removedLevels = updatedLevels.splice(levelIndex + 1);
 
-  // Update state first
-  setCategoryLevels(updatedLevels);
+    // Update state first
+    setCategoryLevels(updatedLevels);
 
-  // Unregister removed fields
-  removedLevels.forEach((_, idx) => {
-    const fieldName = `categoryLevel${levelIndex + 1 + idx}`;
-    unregister(fieldName);
-  });
+    // Unregister removed fields
+    removedLevels.forEach((_, idx) => {
+      const fieldName = `categoryLevel${levelIndex + 1 + idx}`;
+      unregister(fieldName);
+    });
 
-  // Fetch children and add new level if needed
-  if (selected) {
-    try {
-    const res = await api.get(`/admin/categories/${selected._id}/children`);
-    const children = res.data.data;
-    if (children.length > 0) {
-      setCategoryLevels((prev) => [...prev, { options: children, selected: null }]);
+    // Fetch children and add new level if needed
+    if (selected) {
+      try {
+        const res = await api.get(`/admin/categories/${selected._id}/children`);
+        const children = res.data.data;
+        if (children.length > 0) {
+          setCategoryLevels((prev) => [...prev, { options: children, selected: null }]);
+        }
+      } catch (error) {
+        console.error("Error updating category levels:", error);
+      }
     }
-     } catch (error) {
-      console.error("Error updating category levels:", error);
-     }
-  }
-};
+  };
 
 
 
-
+  const safeGet = async (url) => {
+    try {
+      return await api.get(url);
+    } catch (err) {
+      if (err.response && err.response.status === 404) return null;
+      throw err;
+    }
+  };
 
   const handleEditProduct = async (product) => {
     setCurrentEditId(product._id);
+    dispatch(setLoading(true));
+
     try {
+      const categoryExistRes = await safeGet(`admin/categories/${product.category}/exist`);
+      let updatedLevels = [];
+      let categoryData = {};
 
+      if (categoryExistRes && categoryExistRes.data.isPresent) {
+        // Fetch full category chain if exists
+        const chainRes = await api.get(`/admin/categories/${product.category}/chain`);
+        const chain = chainRes.data.data;
 
-      dispatch(setLoading(true));
-      // Fetch the full category chain for this product
-      const chainRes = await api.get(`/admin/categories/${product.category}/chain`);
-      const chain = chainRes.data.data;
+        for (let i = 0; i < chain.length; i++) {
+          const parentId = i === 0 ? null : chain[i - 1]._id;
+          const res = await api.get(`/admin/categories${parentId ? `/${parentId}/children` : "/root"}`);
+          updatedLevels.push({
+            options: res.data.data,
+            selected: chain[i],
+          });
+        }
 
-      // console.log("Category Chain:", chain);
-
-      const updatedLevels = [];
-
-      for (let i = 0; i < chain.length; i++) {
-        const parentId = i === 0 ? null : chain[i - 1]._id;
-
-        // Fetch the sibling categories for this level
-        const res = await api.get(`/admin/categories${parentId ? `/${parentId}/children` : "/root"}`);
-        const children = res.data.data;
-
-
-
-        // Match the structure of handleCategoryChange
-        updatedLevels.push({
-          options: children, // raw categories (with _id, name, parent)
-          selected: chain[i], // raw object too
+        // Map selected categories into form fields
+        updatedLevels.forEach((level, i) => {
+          categoryData[`categoryLevel${i}`] = level.selected._id;
         });
+
+        setCategoryLevels(updatedLevels);
+      } else {
+        // Category not found → load root categories instead
+        console.log("Category not found, loading root categories...");
+        await getRootCategories();
       }
-      dispatch(setLoading(false));
 
-
-      setCategoryLevels(updatedLevels);
-      console.log("Category levels set for edit:", updatedLevels);
-
-      // Prepare autofill object
-      const categoryData = {};
-      updatedLevels.forEach((level, index) => {
-        categoryData[`categoryLevel${index}`] = level.selected._id;
-      });
-
+      // Common reset for both cases
       reset({
         name: product.name || "",
         price: product.price || "",
@@ -267,18 +272,22 @@ function Products() {
         size: product.size || "",
         quantity: product.quantity || "",
         sku: product.sku || "",
-        tags: product.tags?.join(", ") || "",
+        searchTags: product.searchTags?.join(", ") || "",
+        filterTags: product.filterTags?.join(", ") || "",
         description: product.description || "",
-        ...categoryData,
         thumbnail: product.thumbnail.url || "",
         gallery: product.gallery.map(i => i.url) || [],
+        ...categoryData, // will be empty if category not found
       });
 
       setEditProduct(true);
     } catch (error) {
       console.error("Error during edit product setup:", error);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
+
 
 
 
@@ -291,7 +300,8 @@ function Products() {
       size: "",
       quantity: "",
       sku: "",
-      tags: "",
+      searchTags: "",
+      filterTags: "",
       description: "",
       thumbnail: "",
       gallery: [],
@@ -312,6 +322,28 @@ function Products() {
     setThumbnailPreview(thumbnail);
     setGalleryPreviews(gallery);
     setShowModal(true);
+  }
+
+  // function to set new arrivals
+  const handleSetNewArrivals = async (e, itemId, newArrivalStatus) => {
+    console.log(e, itemId, newArrivalStatus)
+    try {
+      const toastId = toast.loading("Updating New Arrival");
+      const res = await api.patch(`admin/products/${itemId}/newArrival`, {
+        status: !newArrivalStatus
+      })
+      toast.update(toastId, {
+        render: res.data.message,
+        type: res.data.status === "success" ? "success" : "error",
+        isLoading: false,
+        autoClose: 3000
+      })
+      if (res.data.status === "success")
+        revalidator.revalidate();
+    } catch (error) {
+      console.log("Error Setting new arrival to product", error);
+      toast.error("Something went wrong");
+    }
   }
 
   useEffect(() => {
@@ -352,7 +384,7 @@ function Products() {
                     "Product Name",
                     "Price",
                     "Mrp",
-                    "Description",
+                    "New Arrival",
                     "Thumbnail",
                     "Gallery",
                     "Stock",
@@ -386,7 +418,7 @@ function Products() {
                       <div>₹{item.mrp}</div>
                     </TableCell>
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      <div>{item.description}</div>
+                      <div><Checkbox onChange={(e) => handleSetNewArrivals(e, item._id, item.newArrival)} checked={item.newArrival} /></div>
                     </TableCell>
 
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400 w-32">
@@ -545,38 +577,6 @@ function Products() {
                 />
               </div>
 
-
-              {/*  Category */}
-              {/* {categoryLevels.map((level, index) => (
-                <div
-                  key={index}
-                  className="col-span-12 md:col-span-6 lg:col-span-4"
-                >
-                  <Label>
-                    {index === 0 ? "Category" : `Subcategory Level ${index}`}
-                    <span className="text-red-400">*</span>
-                  </Label>
-                  <Controller
-                    name={`categoryLevel${index}`}
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        options={level.options.map(cat => ({
-                          value: cat._id,
-                          label: cat.name,
-                        }))}
-                        placeholder="Select Category"
-                        value={level.selected}
-                        onChange={(selected) => {
-                          field.onChange(selected);
-                          handleCategoryChange(index, selected);
-                        }}
-                      />
-                    )}
-                  />
-                </div>
-              ))} */}
               {/* Category */}
               {categoryLevels.map((level, index) => (
                 <div
@@ -835,22 +835,40 @@ function Products() {
                 />
               </div>
 
-              {/* Tags */}
+              {/* search Tags */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Tags
+                  Search Tags
                 </Label>
                 <Controller
-                  name="tags"
+                  name="searchTags"
                   control={control}
                   render={({ field }) => (
                     <Input
                       {...field}
-                      placeholder="Tags (comma separated)"
+                      placeholder="Search Tags (comma separated)"
+
                     />
                   )}
                 />
               </div>
+              {/* filter Tags */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  Filter Tags
+                </Label>
+                <Controller
+                  name="filterTags"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      placeholder="Filter Tags (comma separated)"
+                    />
+                  )}
+                />
+              </div>
+
               {/* Description */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>Description</Label>
@@ -862,6 +880,72 @@ function Products() {
                   )}
                 />
               </div>
+              {/* <div className=" border-y p-2 border-stone-400 col-span-12 text-center text-xl font-bold">Variations</div> */}
+              {/* filter Tags */}
+              {/* <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  Variations Color
+                </Label>
+                <Controller
+                  name="variationColor"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={[
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "green", text: "Green" },
+                        { value: "red", text: "Red" },
+                        { value: "test", text: "test" },
+                      ]}
+                      {...field}
+                      placeholder="Filter Tags (comma separated)"
+                    />
+                  )}
+                />
+              </div> */}
+              {/* <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>Variations Color</Label>
+
+                <Controller
+                  name="variationColor"
+                  control={control}
+                  render={({ field }) => {
+                    const colorOptions = [
+                      { value: "green", label: "Green" },
+                      { value: "red", label: "Red" },
+                      { value: "test", label: "Test" }
+                    ];
+
+                    return (
+                      <ReactSelect
+                        isMulti
+                        options={colorOptions}
+                        value={colorOptions.filter(opt => field.value?.includes(opt.value))}
+                        onChange={selected =>
+                          field.onChange(selected.map(opt => opt.value))
+                        }
+                        placeholder="Select colors"
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        isSearchable={true}
+                      />
+                    );
+                  }}
+                />
+              </div> */}
+
+
+
+
             </div>
 
             <div className="flex justify-start space-x-2">
@@ -880,6 +964,7 @@ function Products() {
                 {responseLoading ? "Saving..." : "Save"}
               </button>
             </div>
+
           </Form>
 
           <button
@@ -1254,18 +1339,34 @@ function Products() {
                 />
               </div>
 
-              {/* Tags */}
+              {/* Search Tags */}
               <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <Label>
-                  Tags
+                  Search Tags
                 </Label>
                 <Controller
-                  name="tags"
+                  name="searchTags"
                   control={control}
                   render={({ field }) => (
                     <Input
                       {...field}
-                      placeholder="Tags (comma separated)"
+                      placeholder="Search Tags (comma separated)"
+                    />
+                  )}
+                />
+              </div>
+              {/* Filter Tags */}
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <Label>
+                  Filter Tags
+                </Label>
+                <Controller
+                  name="filterTags"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      placeholder="Filter Tags (comma separated)"
                     />
                   )}
                 />

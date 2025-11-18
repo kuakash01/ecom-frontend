@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSidebar } from "../../redux/themeSlice";
 import { Link, useLocation } from "react-router-dom";
-import { BinIcon, ArrowDownIcon, GridIcon, ProductHighlightIcon, } from "../../icons";
+import { BinIcon, ArrowDownIcon, GridIcon, ProductHighlightIcon, CmsIcon } from "../../icons";
 
 function SidebarLayoutAdmin() {
   const dispatch = useDispatch();
@@ -33,6 +33,16 @@ function SidebarLayoutAdmin() {
         { name: "products", pathName: "/admin/products" },
         { name: "Category", pathName: "/admin/category" },
         { name: "Orders", pathName: "/admin/orders" },
+        { name: "Colors", pathName: "/admin/colors" },
+        { name: "Sizes", pathName: "/admin/sizes" },
+      ],
+    },
+    {
+      name: "Website Management",
+      icon: <CmsIcon />,
+      subItem: [
+        { name: "Carousel", pathName: "/admin/carousel" },
+        
       ],
     },
   ];

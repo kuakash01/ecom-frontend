@@ -1,60 +1,117 @@
 import Badge from "../../components/common/ui/badge/Badge";
-import Reviews from "../../components/user/home/Reviews";
-import ProductSection from "../../components/user/product/ProductsSection";
+import { useLoaderData } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
+
 
 function Product() {
+  const productDetail = useLoaderData();
+  const thumbRef = useRef(null);
+  const allImages = [
+    productDetail.thumbnail.url,
+    ...productDetail.gallery.map(img => img.url)
+  ];
+
+  const [mainImage, setMainImage] = useState(allImages[0]);
+
+  const scrollAmount = 150; // pixels to scroll per click
+
+  const scrollUp = () => {
+    if (thumbRef.current) {
+      thumbRef.current.scrollTop -= scrollAmount;
+    }
+  };
+
+  const scrollDown = () => {
+    if (thumbRef.current) {
+      thumbRef.current.scrollTop += scrollAmount;
+    }
+  };
+
+
   return (
-    <div className="py-2  px-2 lg:px-20">
+    <div className="py-2  px-2 lg:px-10">
       {/* product details */}
-      <div className="grid grid-cols-12 ">
-        <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10">
-          <div className="col-span-12 lg:col-span-3 grid grid-cols-12 order-2 lg:order-1 gap-2">
-            <div className="col-span-3 lg:col-span-12">
-              <img
-                className="object-cover aspect-square rounded-2xl"
-                src="/product/product.jpg"
-                alt="Thumbnail 1"
-              />
+      {productDetail && <div className="grid grid-cols-12 ">
+        <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10 h-full">
+          {/* <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
+            {allImages.map((img, idx) => (
+              <div
+                key={idx}
+                className="min-w-32 md:min-w-full cursor-pointer"
+                onClick={() => setMainImage(img)}
+              >
+                <img
+                  className="object-cover aspect-square rounded-2xl border hover:border-black transition"
+                  src={img}
+                  alt={`Thumbnail ${idx}`}
+                />
+              </div>
+            ))}
+          </div> */}
+          <div className="col-span-12 lg:col-span-3 order-2 lg:order-1 flex flex-col items-center min-h-0">
+
+            {/* Up Arrow */}
+            <button
+              onClick={scrollUp}
+              className="hidden md:block p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <ChevronUp size={20} />
+            </button>
+
+            {/* Scrollable Thumbnails */}
+            <div
+              ref={thumbRef}
+              className="flex flex-row lg:flex-col gap-2 w-full overflow-y-auto overflow-x-auto min-h-0 max-h-[55vh] py-2 no-scrollbar"
+            >
+              {allImages.map((img, idx) => (
+                <div
+                  key={idx}
+                  className="min-w-32 lg:min-w-full cursor-pointer"
+                  onClick={() => setMainImage(img)}
+                >
+                  <img
+                    className="object-cover aspect-square rounded-xl border hover:border-black transition"
+                    src={img}
+                    alt={`Thumbnail ${idx}`}
+                  />
+                </div>
+              ))}
             </div>
-            <div className="col-span-3 lg:col-span-12 ">
-              <img
-                className="object-cover aspect-square rounded-2xl"
-                src="/product/product.jpg"
-                alt="Thumbnail 1"
-              />
-            </div>
-            <div className="col-span-3 lg:col-span-12 ">
-              <img
-                className="object-cover aspect-square rounded-2xl"
-                src="/product/product.jpg"
-                alt="Thumbnail 1"
-              />
-            </div>
+
+            {/* Down Arrow */}
+            <button
+              onClick={scrollDown}
+              className="hidden md:block p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <ChevronDown size={20} />
+            </button>
           </div>
+
+
           <div className="col-span-12 lg:col-span-9 order-1 lg:order-2">
             <img
-              src="/product/product.jpg"
+              src={mainImage}
               alt="Main product"
               className="w-full h-auto object-cover shadow aspect-square rounded-2xl"
             />
           </div>
         </div>
         <div className="col-span-12 lg:col-span-6 flex flex-col justify-between p-0 lg:p-10">
-          <h1 className="text-3xl font-semibold">Product Title</h1>
+          <h1 className="text-3xl font-semibold">{productDetail.name}</h1>
           <div>
             <span>⭐️⭐️⭐️⭐️⭐️</span>
             <span>4.5/5</span>
           </div>
           <div className="flex gap-3 font-bold items-center">
-            <p className="text-2xl text-black">₹1,999.00</p>
-            <p className="text-2xl text-gray-500 line-through">₹1,999.00</p>
+            <p className="text-2xl text-black">₹{productDetail.price}</p>
+            <p className="text-2xl text-gray-500 line-through">₹{productDetail.mrp}</p>
             <span>
               <Badge>-40%</Badge>
             </span>
           </div>
           <p className="text-gray-700 ">
-            This is a short description of the product. It highlights features
-            and value to the customer.
+            {productDetail.description}
           </p>
           <div className="border-b border-b-brand-200/30"></div>
           <div>
@@ -90,7 +147,7 @@ function Product() {
             </button>
           </div>
         </div>
-      </div>
+      </div>}
       {/* product reviews */}
       <div className="">
         <div className="grid grid-cols-3">

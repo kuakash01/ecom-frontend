@@ -44,11 +44,11 @@ function UserDropdown() {
     }, [isOpen]);
 
     return (
-        <>
+        <div>
             <button type="button" ref={dropdownRef} className="cursor-pointer " onClick={handleToggle}>
                 <div className="flex gap-2 items-center">
                     <div className="w-10 h-10 rounded-full bg-gray-300">
-                        profile
+                        pro
                     </div>
 
                     {/* <div>
@@ -66,7 +66,7 @@ function UserDropdown() {
                 </div>
             )}
 
-        </>
+        </div>
 
     )
 }

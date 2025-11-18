@@ -6,6 +6,7 @@ import Label from "../../components/common/form/Label";
 import Input from "../../components/common/form/input/InputField";
 import Textarea from "../../components/common/form/input/TextArea";
 import Select from "../../components/common/form/Select";
+import SingleImageUpload from "../../components/common/form/SingleImageUpload"
 import {
   Table,
   TableHeader,
@@ -40,13 +41,19 @@ function ManageCategories() {
     console.log("Category Form Submitted: ", values);
     setLoading(true);
 
+    const toastId = toast.loading("Adding category...");
+
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("description", values.description);
+    formData.append("parent", values.parent || "");
+
+    // Append single image if it exists
+    if (values.image) {
+      formData.append("image", values.image); // values.image is a File object
+    }
     try {
-      const toastId = toast.loading("Adding category...");
-      const response = await api.post('/admin/categories', {
-        name: values.name,
-        description: values.description,
-        parent: values.parent || null
-      });
+      const response = await api.post('/admin/categories', formData);
       console.log("Category added successfully:", response.data);
       toast.update(toastId, {
         render: response.data.message,
@@ -54,14 +61,24 @@ function ManageCategories() {
         isLoading: false,
         autoClose: 3000
       });
-      reset();
+      reset({
+        name: "",
+        parent: "",
+        description: "",
+        image: null
+      });
       setAddNewCategory(false);
       setLoading(false);
       revalidator.revalidate();
     } catch (error) {
       console.error("Error adding category:", error);
       setLoading(false);
-      toast.error("Failed to add category. Please try again.");
+      toast.update(toastId, {
+        render: "Failed to add category. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      });
     }
 
   };
@@ -99,6 +116,7 @@ function ManageCategories() {
           name: category.name || "",
           description: category.description || "",
           parent: parentCategory ? parentCategory._id : null,
+          image: category.image?.url || ""
         });
       }
     } catch (error) {
@@ -110,13 +128,19 @@ function ManageCategories() {
 
   const handleEditCategory = async (values) => {
     console.log("Edit category: ", values);
+
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("description", values.description);
+    formData.append("parent", values.parent || "");
+
+    // Append single image if it exists
+    if (typeof values.image === "object") {
+      formData.append("image", values.image); // values.image is a File object
+    }
+    const toastId = toast.loading("Editing category...");
     try {
-      const toastId = toast.loading("Editing category...");
-      const response = await api.patch(`/admin/categories/${values.id}`, {
-        name: values.name,
-        description: values.description,
-        parent: values.parent || null
-      });
+      const response = await api.patch(`/admin/categories/${values.id}`, formData);
       setEditCategory(false);
       toast.update(toastId, {
         render: response.data.message,
@@ -126,9 +150,13 @@ function ManageCategories() {
       });
       revalidator.revalidate();
     } catch (error) {
-      
       console.error("Error updating category:", error);
-      toast.error("Failed to update category. Please try again.");
+      toast.update(toastId, {
+        render: "something went wrong",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      });
     }
   };
 
@@ -160,7 +188,7 @@ function ManageCategories() {
             <Table className="text-gray-600 w-full">
               <TableHeader className="bg-admin-500 dark:bg-admin-dark-700 border-b border-b order border-gray-200 dark:border-gray-500">
                 <TableRow>
-                  {["Sr. No", "Category Name", "Parent Category", "Description", "Action"].map(
+                  {["Sr. No", "Image", "Category Name", "Parent Category", "Description", "Action"].map(
                     (heading) => (
                       <TableCell
                         key={heading}
@@ -176,11 +204,16 @@ function ManageCategories() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05] text-black dark:text-white">
                 {loaderData?.data.map((item, index) => (
                   <TableRow
-                    key={item.id}
+                    key={item._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                   >
                     <TableCell className="px-6 py-4 text-sm font-medium">
                       {index + 1}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium">
+                      <div className="w-52">
+                        <img className="w-full aspect-square object-cover" src={item?.image?.url || (`${import.meta.env.VITE_BASE_URL}/images/defaultimage/no-image.jpg`)} alt="category image" />
+                      </div>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm">
                       {item.name}
@@ -222,7 +255,7 @@ function ManageCategories() {
             <h2 className="text-xl font-semibold">Add New Category</h2>
             <button
               onClick={() => setAddNewCategory(false)}
-              className="text-gray-500 hover:text-black cursor-pointer text-2xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-black cursor-pointer"
             >
               ✕
             </button>
@@ -267,6 +300,23 @@ function ManageCategories() {
                       error={!!fieldState.error}
                       hint={fieldState.error?.message}
                     />
+                  )}
+                />
+              </div>
+              {/* Image */}
+              <div className="col-span-12 md:col-span-6">
+                <Label>
+                  Image (upload if root category)
+                </Label>
+                <Controller
+                  name="image"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <SingleImageUpload
+                      onChange={field.onChange}
+                      value={field.value}
+                    />
+
                   )}
                 />
               </div>
@@ -357,6 +407,24 @@ function ManageCategories() {
                       error={!!fieldState.error}
                       hint={fieldState.error?.message}
                     />
+                  )}
+                />
+              </div>
+
+              {/* Image */}
+              <div className="col-span-12 md:col-span-6">
+                <Label>
+                  Image (upload if root category)
+                </Label>
+                <Controller
+                  name="image"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <SingleImageUpload
+                      onChange={field.onChange}
+                      value={field.value}
+                    />
+
                   )}
                 />
               </div>

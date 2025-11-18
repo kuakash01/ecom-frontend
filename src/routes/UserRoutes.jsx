@@ -8,7 +8,7 @@ import Category from "../pages/user/Category";
 import Cart from "../pages/user/Cart";
 
 // // loders
-// import getAllProducts from "../pages/admin/dashboardLoader"; // Example API call
+import ProductLoader from "../pages/user/ProductLoader";
 
 // Auth-protected layout wrapper
 const ProtectedRoute = () => {
@@ -25,8 +25,9 @@ const userRoutes = {
       element: <Home />,
     },
     {
-      path: "product",
+      path: "product/:productId",
       element: <Product />,
+      loader: ProductLoader
     },
     {
       path: "category",

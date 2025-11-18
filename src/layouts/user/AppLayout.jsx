@@ -15,7 +15,7 @@ function AppLayout() {
       {!isMobileOpen &&<div className="relative z-50">
         <div className="topbar  bg-black text-white p-1">topbar</div>
       </div>}
-      <div className="sticky top-0 z-30">
+      <div className="sticky top-0 z-30 shadow-lg">
         <HeaderLayout />
       </div>
       <div className="flex ">

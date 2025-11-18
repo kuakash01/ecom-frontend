@@ -2,19 +2,32 @@ import React, { lazy, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 // import Dashboard from "../pages/admin/Dashboard";
+
+// pages
 const Dashboard = lazy(() => import("../pages/admin/Dashboard"));
 const Products = lazy(() => import("../pages/admin/Products"));
 const AppLayoutAdmin = lazy(() => import("../layouts/admin/AppLayoutAdmin"));
 const ManageCategories = lazy(() => import("../pages/admin/ManageCategories"));
 const Orders = lazy(() => import("../pages/admin/Orders"));
-import { login } from "../redux/adminSlice";
-import { checkAuth } from "../services/authService"; // Adjust the path as necessary
-import Loading from "../components/common/ui/loading/Loading";
-import AdminLogin from "../pages/admin/AdminLogin";
+const HomeCarousel = lazy(() => import("../pages/admin/HomeCarousel"));
+const ManageColors = lazy(() => import("../pages/admin/ManageColors"));
+const ManageSizes = lazy(() => import("../pages/admin/ManageSizes"));
+
+
 // loders
 import ProductsLoader from "../pages/admin/ProductsLoader"; // Example API call
 import OrdersLoader from "../pages/admin/OrdersLoader";
 import CategoriesLoader from "../pages/admin/CategoriesLoader";
+import HomeCarouselLoader from "../pages/admin/HomeCarouselLoader";
+import ColorsLoader from "../pages/admin/ColorsLoader";
+import SizesLoader from "../pages/admin/SizesLoader";
+
+
+import { login } from "../redux/adminSlice";
+import { checkAuth } from "../services/authService"; // Adjust the path as necessary
+import Loading from "../components/common/ui/loading/Loading";
+import AdminLogin from "../pages/admin/AdminLogin";
+
 import { useEffect } from "react";
 
 
@@ -77,7 +90,12 @@ const adminRoutes = {
             { path: "dashboard", element: <Dashboard /> },
             { path: "products", element: <Products />, loader: ProductsLoader },
             { path: "category", element: <ManageCategories />, loader: CategoriesLoader },
-            { path: "orders", element: <Orders />, loader: OrdersLoader},
+            { path: "orders", element: <Orders />, loader: OrdersLoader },
+            { path: "colors", element: <ManageColors />, loader: ColorsLoader },
+            { path: "sizes", element: <ManageSizes />, loader: SizesLoader },
+
+
+            { path: "carousel", element: <HomeCarousel />, loader: HomeCarouselLoader },
           ],
         },
       ],

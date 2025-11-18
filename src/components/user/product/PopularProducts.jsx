@@ -1,0 +1,56 @@
+import { useState, useEffect } from "react";
+import api from "../../../config/axios";
+import { Link } from "react-router-dom";
+
+
+function PopularProducts() {
+  const [products, setProducts] = useState([]);
+
+  const getBestSeller = async () => {
+    try {
+      const res = await api.get("products/bestSeller");
+      setProducts(res.data.data);
+      // console.log("best seller", res.data.data);
+    } catch (error) {
+      console.error("Error fetching products", error)
+    }
+  }
+
+  useEffect(() => {
+    getBestSeller();
+  }, [])
+
+  return (
+    <div className=" my-4  rounded-lg ">
+      <h3 className="text-center text-4xl font-bold my-10">Best Seller</h3>
+      <div className="grid grid-cols-12 m-0 md:mx-20 ">
+        {products && products.map((item, i) => (
+          <div key={i} className="col-span-6 md:col-span-3 bg-white rounded-2xl cursor-pointer p-2 group">
+            <Link to="product">
+              <img
+                className="aspect-[14/16] object-cover rounded-2xl w-full group-hover:scale-105 duration-150"
+                src={item.thumbnail.url}
+                alt="product"
+              />
+              <div className="mt-2">
+                <p className="text-sm text-gray-400">{item.category?.name}</p>
+                <p className="text-lg font-medium">{item.name}</p>
+                <div className="flex gap-2 items-center">
+                  <p className="text-md font-semibold">₹ {item.price}</p>
+                  <p className="text-sm line-through">₹ {item.mrp}</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-center mt-4">
+        <Link to="/product" className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
+          View all
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default PopularProducts;

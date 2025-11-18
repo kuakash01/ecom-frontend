@@ -1,24 +1,27 @@
 import React from "react";
-import Banner from "../../components/user/home/Banner";
-import ProductSection from "../../components/user/product/ProductsSection";
-import Brands from "../../components/user/home/Brands";
-import Category from "../../components/user/home/Category";
+import Carousel from "../../components/user/home/Carousel";
+import PopularProducts from "../../components/user/product/PopularProducts";
+import NewArrivals from "../../components/user/product/NewArrivals";
+import Categories from "../../components/user/home/Categories";
+import DressStyle from "../../components/user/home/DressStyle";
 import Reviews from "../../components/user/home/Reviews";
 function Home() {
   return (
     <div className="grid grid-cols-12 ">
       <div className="col-span-12">
-        <Banner />
+        <Carousel />
       </div>
       <div className="col-span-12">
-        <Brands />
+        <Categories />
       </div>
       <div className="col-span-12">
-        <ProductSection />
-        <ProductSection />
+        <NewArrivals />
       </div>
       <div className="col-span-12">
-        <Category />
+        <PopularProducts />
+      </div>
+      <div className="col-span-12">
+        <DressStyle />
       </div>
       <div className="col-span-12">
         <Reviews />

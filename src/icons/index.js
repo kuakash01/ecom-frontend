@@ -13,6 +13,22 @@ import { ReactComponent as GridIcon } from "./grid.svg?react";
 import { ReactComponent as ProductHighlightIcon } from "./product-highlight.svg?react";
 import { ReactComponent as HamBurgerOpenIcon } from "./hamburger-open.svg?react";
 import { ReactComponent as HamBurgerCloseIcon } from "./hamburger-closed.svg?react";
+import { ReactComponent as CmsIcon } from "./cms.svg?react";
 
-    
-export { GreaterThanIcon, LightModeIcon, DarkModeIcon, FilterIcon, ArrowNextIcon, ArrowPrevIcon, ArrowDownIcon, TickIcon, BinIcon, DiscountIcon, HomeIcon, GridIcon, ProductHighlightIcon, HamBurgerOpenIcon, HamBurgerCloseIcon };
+
+export {
+    GreaterThanIcon,
+    LightModeIcon,
+    DarkModeIcon,
+    FilterIcon,
+    ArrowNextIcon,
+    ArrowPrevIcon,
+    ArrowDownIcon,
+    TickIcon, BinIcon,
+    DiscountIcon,
+    HomeIcon, GridIcon,
+    ProductHighlightIcon,
+    HamBurgerOpenIcon,
+    HamBurgerCloseIcon,
+    CmsIcon,
+};

@@ -1,10 +1,9 @@
-import axios from 'axios';
 import api from '../../config/axios'; // Import your axios instance
 import store from '../../redux/store';
 import { setLoading } from '../../redux/themeSlice';
 
 
-const ProductsLoader = async()=>{
+const CategoryLoader = async()=>{
     try {
         store.dispatch(setLoading(true));
         const response = await api.get(`/admin/categories`);
@@ -17,4 +16,4 @@ const ProductsLoader = async()=>{
     }
 }
 
-export default ProductsLoader;
+export default CategoryLoader;
