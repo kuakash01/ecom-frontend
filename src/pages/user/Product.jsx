@@ -1,130 +1,130 @@
 import Badge from "../../components/common/ui/badge/Badge";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useSearchParams, useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import api from "../../config/axios";
+import NewArrivals from "../../components/user/product/NewArrivals";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 
 function Product() {
   const productDetail = useLoaderData();
   const thumbRef = useRef(null);
-  const allImages = [
-    productDetail.thumbnail.url,
-    ...productDetail.gallery.map(img => img.url)
-  ];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
+  const { productId } = useParams();
 
-  const [mainImage, setMainImage] = useState(allImages[0]);
+  const [currentGallery, setCurrentGallery] = useState([]);
+  const [mainImage, setMainImage] = useState("");
+  const [currentVariant, setCurrentVariant] = useState(null);
 
-  const scrollAmount = 150; // pixels to scroll per click
-
-  const scrollUp = () => {
-    if (thumbRef.current) {
-      thumbRef.current.scrollTop -= scrollAmount;
-    }
+  const handleColorChange = (colorId) => {
+    setSearchParams({ color: colorId });
+    setSelectedColor(colorId);
   };
 
-  const scrollDown = () => {
-    if (thumbRef.current) {
-      thumbRef.current.scrollTop += scrollAmount;
+  const getColorGallery = async (productId, colorId) => {
+    try {
+      const response = await api.get(`/products/${productId}/color-gallery/${colorId}`);
+      let gallery = response.data.data.gallery;
+      setMainImage(gallery.length > 0 ? gallery[0] : "");
+      return setCurrentGallery(gallery);
+    } catch (error) {
+      console.error("Error fetching color gallery:", error);
     }
+    console.log("productid, colorid", productId, colorId);
   };
 
+  const getColorId = (selectedColor, productDetail) => {
+    let colorId = "";
+    productDetail.allColors.forEach(cg => {
+      if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
+        colorId = cg._id;
+      }
+    });
+    return colorId;
+  }
 
+  useEffect(() => {
+    if (selectedColor && productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase())) {
+      getColorGallery(productId, getColorId(selectedColor, productDetail));
+    } else {
+      setCurrentGallery(productDetail.defaultGallery);
+      setCurrentVariant(productDetail.defaultVariant);
+      setMainImage(productDetail.defaultGallery.length > 0 ? productDetail.defaultGallery[0] : "");
+    }
+    setSelectedColor(searchParams.get("color") || "");
+
+    console.log("selected color changed", selectedColor);
+  }, [productDetail, searchParams]);
+
+  useScrollToTop(); // scroll to top on component load
+
+  if (!productDetail) {
+    return <div>Loading...</div>;
+  }
+  else if (productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase()) === undefined && selectedColor !== "") {
+    return <div className="py-10 px-10 text-center">Color "{selectedColor}" not available for this product. <button onClick={() => setSearchParams({})} className="underline text-blue-600 cursor-pointer" >See all colors</button></div >
+  }
   return (
     <div className="py-2  px-2 lg:px-10">
       {/* product details */}
       {productDetail && <div className="grid grid-cols-12 ">
         <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10 h-full">
-          {/* <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
-            {allImages.map((img, idx) => (
+          <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
+            {currentGallery?.map((img, idx) => (
               <div
                 key={idx}
-                className="min-w-32 md:min-w-full cursor-pointer"
+                className={`min-w-32 md:min-w-full cursor-pointer rounded-2xl overflow-hidden border  ${mainImage.url === img.url ? "border-black " : "border-gray-200"}`}
                 onClick={() => setMainImage(img)}
               >
                 <img
-                  className="object-cover aspect-square rounded-2xl border hover:border-black transition"
-                  src={img}
+                  className={`object-cover aspect-square  transition duration-150 hover:scale-105 `}
+                  src={img.url}
                   alt={`Thumbnail ${idx}`}
                 />
               </div>
             ))}
-          </div> */}
-          <div className="col-span-12 lg:col-span-3 order-2 lg:order-1 flex flex-col items-center min-h-0">
-
-            {/* Up Arrow */}
-            <button
-              onClick={scrollUp}
-              className="hidden md:block p-2 bg-gray-200 rounded-full hover:bg-gray-300"
-            >
-              <ChevronUp size={20} />
-            </button>
-
-            {/* Scrollable Thumbnails */}
-            <div
-              ref={thumbRef}
-              className="flex flex-row lg:flex-col gap-2 w-full overflow-y-auto overflow-x-auto min-h-0 max-h-[55vh] py-2 no-scrollbar"
-            >
-              {allImages.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="min-w-32 lg:min-w-full cursor-pointer"
-                  onClick={() => setMainImage(img)}
-                >
-                  <img
-                    className="object-cover aspect-square rounded-xl border hover:border-black transition"
-                    src={img}
-                    alt={`Thumbnail ${idx}`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Down Arrow */}
-            <button
-              onClick={scrollDown}
-              className="hidden md:block p-2 bg-gray-200 rounded-full hover:bg-gray-300"
-            >
-              <ChevronDown size={20} />
-            </button>
           </div>
+
 
 
           <div className="col-span-12 lg:col-span-9 order-1 lg:order-2">
             <img
-              src={mainImage}
+              src={mainImage ? mainImage.url : productDetail.thumbnail.url}
               alt="Main product"
               className="w-full h-auto object-cover shadow aspect-square rounded-2xl"
             />
           </div>
         </div>
         <div className="col-span-12 lg:col-span-6 flex flex-col justify-between p-0 lg:p-10">
-          <h1 className="text-3xl font-semibold">{productDetail.name}</h1>
-          <div>
+          <h1 className="text-xl font-semibold">{productDetail.title}</h1>
+          {/* <div>
             <span>⭐️⭐️⭐️⭐️⭐️</span>
             <span>4.5/5</span>
-          </div>
+          </div> */}
           <div className="flex gap-3 font-bold items-center">
-            <p className="text-2xl text-black">₹{productDetail.price}</p>
-            <p className="text-2xl text-gray-500 line-through">₹{productDetail.mrp}</p>
+            <p className="text-2xl text-black">₹{currentVariant?.price || ""}</p>
+            <p className="text-2xl text-gray-500 line-through">₹{currentVariant?.mrp || ""}</p>
             <span>
               <Badge>-40%</Badge>
             </span>
           </div>
-          <p className="text-gray-700 ">
+          {/* <p className="text-gray-700 ">
             {productDetail.description}
-          </p>
+          </p> */}
           <div className="border-b border-b-brand-200/30"></div>
           <div>
-            <p className="pb-2">Select Colors</p>
+            <p className="pb-2 text-xs text-gray-500">Select Colors</p>
             <div className="flex gap-2">
-              <div className="w-7 h-7 rounded-full bg-brand-400"></div>
-              <div className="w-7 h-7 rounded-full bg-green-900"></div>
-              <div className="w-7 h-7 rounded-full bg-blue-800"></div>
+              {productDetail.allColors.map((color, idx) => (
+                <div key={idx} onClick={() => handleColorChange(color.colorName.toLowerCase())} className={` cursor-pointer ${selectedColor.toLowerCase() === color.colorName.toLowerCase() ? "text-blue-500 text-shadow-lg" : ""}`} >{color.colorName}</div>
+              ))}
             </div>
           </div>
           <div className="border-b border-b-brand-200/30"></div>
           <div>
-            <p className="pb-2">Select Size</p>
+            <p className="pb-2 text-xs text-gray-500">Select Size</p>
             <div className="flex gap-3">
               <div className="py-1 px-3 rounded-full bg-stone-200">Small</div>
               <div className="py-1 px-3 rounded-full bg-stone-200">Medium</div>
@@ -244,28 +244,7 @@ function Product() {
         </div>
 
         <div className=" my-6  rounded-lg ">
-          <h3 className="text-center text-4xl font-bold my-10">New Arrivals</h3>
-          <div className="grid grid-cols-12  ">
-            {Array(4)
-              .fill(0)
-              .map((_, i) => (
-                <div
-                  key={i}
-                  className="col-span-6 md:col-span-3 bg-white rounded-2xl  p-2"
-                >
-                  <img
-                    className="aspect-[14/16] object-cover rounded-2xl w-full"
-                    src="/product/product.jpg"
-                    alt="product"
-                  />
-                  <div className="mt-2">
-                    <p className="text-xl font-bold">Product Name</p>
-                    <p className="text-sm">⭐️⭐️⭐️⭐️☆</p>
-                    <p className="text-lg font-semibold">₹ 1599</p>
-                  </div>
-                </div>
-              ))}
-          </div>
+          <NewArrivals />
         </div>
       </div>
     </div>

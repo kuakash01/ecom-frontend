@@ -30,8 +30,8 @@ function NewArrivals() {
                 alt="product"
               />
               <div className="mt-2">
-                <p className="text-sm text-gray-400">{item.category?.name}</p>
-                <p className="text-lg font-medium">{item.name}</p>
+                <p className="text-sm text-gray-400">{item.category}</p>
+                <p className="text-lg font-medium">{item.title}</p>
                 <div className="flex gap-2 items-center">
                   <p className="text-md font-semibold">₹ {item.price}</p>
                   <p className="text-sm line-through">₹ {item.mrp}</p>

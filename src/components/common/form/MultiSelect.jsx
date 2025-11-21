@@ -1,4 +1,4 @@
-// import { useState } from "react";
+// import { useState, useRef, useEffect } from "react";
 
 // const MultiSelect = ({
 //   label,
@@ -6,9 +6,31 @@
 //   defaultSelected = [],
 //   onChange,
 //   disabled = false,
+//   className = "",
+//   error = false,
+//   success = false,
+//   hint,
 // }) => {
 //   const [selectedOptions, setSelectedOptions] = useState(defaultSelected);
 //   const [isOpen, setIsOpen] = useState(false);
+//   const containerRef = useRef(null);
+//   const [searchText, setSearchText] = useState("");
+//   const filteredOptions = options.filter((option) =>
+//     option.label.toLowerCase().includes(searchText.toLowerCase())
+//   );
+
+//   useEffect(() => {
+//     const handleClickOutside = (event) => {
+//       if (containerRef.current && !containerRef.current.contains(event.target)) {
+//         setIsOpen(false);
+//       }
+//     };
+
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => {
+//       document.removeEventListener("mousedown", handleClickOutside);
+//     };
+//   }, [containerRef]);
 
 //   const toggleDropdown = () => {
 //     if (!disabled) setIsOpen((prev) => !prev);
@@ -29,9 +51,46 @@
 //     onChange?.(newSelectedOptions);
 //   };
 
-//   const selectedValuesText = selectedOptions.map(
-//     (value) => options.find((option) => option.value === value)?.text || ""
+//   const selectedValuesLabel = selectedOptions.map(
+//     (value) => options.find((option) => option.value === value)?.label || ""
 //   );
+
+
+//   // Base styles (copied from your Input component)
+//   let selectClasses = `
+//     h-11 w-full rounded-lg border appearance-none px-4 py-2.5 pr-11 text-sm
+//     shadow-theme-xs placeholder:text-gray-400
+//     focus:outline-hidden focus:ring-3
+//     dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30
+//     ${className}
+//   `;
+
+//   // Apply error/success/normal styles (same logic as Input)
+//   if (error) {
+//     selectClasses += `
+//       border-error-500 
+//       focus:border-error-300 
+//       focus:ring-error-500/20 
+//       dark:text-error-400 
+//       dark:border-error-500 
+//       dark:focus:border-error-800
+//     `;
+//   } else if (success) {
+//     selectClasses += `
+//       border-success-500 
+//       focus:border-success-300 
+//       focus:ring-success-500/20 
+//       dark:text-success-400 
+//       dark:border-success-500 
+//       dark:focus:border-success-800
+//     `;
+//   } else {
+//     selectClasses += `
+//       bg-transparent text-gray-800 border-gray-300
+//       focus:border-brand-300 focus:ring-brand-500/20
+//       dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800
+//     `;
+//   }
 
 //   return (
 //     <div className="w-full">
@@ -39,18 +98,18 @@
 //         {label}
 //       </label>
 
-//       <div className="relative z-20 inline-block w-full">
-//         <div className="relative flex flex-col items-center">
+//       <div className={`relative z-20 inline-block ${className}`}>
+//         <div ref={containerRef} className="relative flex flex-col items-center">
 //           <div onClick={toggleDropdown} className="w-full">
-//             <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pl-3 pr-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300">
-//               <div className="flex flex-wrap flex-auto gap-2">
-//                 {selectedValuesText.length > 0 ? (
-//                   selectedValuesText.map((text, index) => (
+//             <div className="mb-2 flex min-h-11 rounded-lg border border-gray-300 py-1.5 pl-2 pr-2 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300">
+//               <div className="flex flex-wrap h-fit flex-auto gap-1">
+//                 {selectedValuesLabel.length > 0 ? (
+//                   selectedValuesLabel.map((label, index) => (
 //                     <div
 //                       key={index}
 //                       className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
 //                     >
-//                       <span className="flex-initial max-w-full">{text}</span>
+//                       <span className="flex-initial max-w-full">{label}</span>
 //                       <div className="flex flex-row-reverse flex-auto">
 //                         <div
 //                           onClick={(e) => {
@@ -86,10 +145,27 @@
 //                   />
 //                 )}
 //               </div>
+//               {selectedOptions.length > 0 && (<button type="button" className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={(e) => {
+//                 e.stopPropagation();
+//                 if (!disabled) setSelectedOptions([]); onChange?.([]);
+//               }}><svg
+//                 className="fill-current"
+//                 role="button"
+//                 width="14"
+//                 height="14"
+//                 viewBox="0 0 14 14"
+//                 xmlns="http://www.w3.org/2000/svg"
+//               >
+//                   <path
+//                     fillRule="evenodd"
+//                     clipRule="evenodd"
+//                     d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
+//                   />
+//                 </svg></button>)}
 //               <div className="flex items-center py-1 pl-1 pr-1 w-7">
 //                 <button
 //                   type="button"
-//                   onClick={toggleDropdown}
+//                   onClick={(e) => { e.stopPropagation(); toggleDropdown(); }}
 //                   className="w-5 h-5 text-gray-700 outline-hidden cursor-pointer focus:outline-hidden dark:text-gray-400"
 //                 >
 //                   <svg
@@ -118,22 +194,47 @@
 //               className="absolute left-0 z-40 w-full overflow-y-auto bg-white rounded-lg shadow-sm top-full max-h-select dark:bg-gray-900"
 //               onClick={(e) => e.stopPropagation()}
 //             >
-//               <div className="flex flex-col">
-//                 {options.map((option, index) => (
+//               <div className="sticky top-0 bg-white dark:bg-gray-900 p-2 border-b border-gray-200 dark:border-gray-800">
+//                 <div className="relative">
+//                   <input
+//                     type="text"
+//                     value={searchText}
+//                     onChange={(e) => setSearchText(e.target.value)}
+//                     placeholder="Search options..."
+//                     className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white outline-none focus:border-primary-500 dark:focus:border-primary-500"
+//                   />
+
+//                   <svg
+//                     className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       strokeWidth="2"
+//                       strokeLinecap="round"
+//                       strokeLinejoin="round"
+//                       d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
+//                     />
+//                   </svg>
+//                 </div>
+//               </div>
+
+//               <div className="flex flex-col h-auto max-h-60 overflow-y-auto">
+//                 {filteredOptions.map((option, index) => (
 //                   <div
 //                     key={index}
 //                     className={`hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800`}
-//                     onClick={() => handleSelect(option.value)}
+//                     onClick={() => { setSearchText(""); handleSelect(option.value); }}
 //                   >
 //                     <div
-//                       className={`relative flex w-full items-center p-2 pl-2 ${
-//                         selectedOptions.includes(option.value)
-//                           ? "bg-primary/10"
-//                           : ""
-//                       }`}
+//                       className={`relative flex w-full items-center p-2 pl-2 ${selectedOptions.includes(option.value)
+//                         ? "bg-primary/10"
+//                         : ""
+//                         }`}
 //                     >
 //                       <div className="mx-2 leading-6 text-gray-800 dark:text-white/90">
-//                         {option.text}
+//                         {option.label}
 //                       </div>
 //                     </div>
 //                   </div>
@@ -142,6 +243,19 @@
 //             </div>
 //           )}
 //         </div>
+//         {/* Hint Area (Error message / Success message) */}
+//         {hint && (
+//           <p
+//             className={`mt-1.5 text-xs ${error
+//                 ? "text-error-500"
+//                 : success
+//                   ? "text-success-500"
+//                   : "text-gray-500"
+//               }`}
+//           >
+//             {hint}
+//           </p>
+//         )}
 //       </div>
 //     </div>
 //   );
@@ -151,25 +265,45 @@
 
 
 
+
+
+
+
 import { useState, useRef, useEffect } from "react";
 
-const MultiSelect = ({ label, options, defaultSelected = [], onChange, disabled = false }) => {
+const MultiSelect = ({
+  label,
+  options,
+  defaultSelected = [],
+  onChange,
+  disabled = false,
+  className = "",
+  placeholder = "Select option",
+  error = false,
+  success = false,
+  hint,
+}) => {
   const [selectedOptions, setSelectedOptions] = useState(defaultSelected);
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
   const [searchText, setSearchText] = useState("");
-  const wrapperRef = useRef(null);
-  const [filteredOptions, setFilteredOptions] = useState(options);
 
-  // Close dropdown if clicked outside
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [containerRef]);
 
   const toggleDropdown = () => {
     if (!disabled) setIsOpen((prev) => !prev);
@@ -177,7 +311,7 @@ const MultiSelect = ({ label, options, defaultSelected = [], onChange, disabled 
 
   const handleSelect = (optionValue) => {
     const newSelectedOptions = selectedOptions.includes(optionValue)
-      ? selectedOptions.filter((v) => v !== optionValue)
+      ? selectedOptions.filter((value) => value !== optionValue)
       : [...selectedOptions, optionValue];
 
     setSelectedOptions(newSelectedOptions);
@@ -185,111 +319,233 @@ const MultiSelect = ({ label, options, defaultSelected = [], onChange, disabled 
   };
 
   const removeOption = (value) => {
-    const newSelectedOptions = selectedOptions.filter((v) => v !== value);
+    const newSelectedOptions = selectedOptions.filter((opt) => opt !== value);
     setSelectedOptions(newSelectedOptions);
     onChange?.(newSelectedOptions);
   };
 
-  // const filteredOptions = options.filter((opt) =>
-  //   opt.text.toLowerCase().includes(searchText.toLowerCase())
-  // );
-
-  const selectedValuesText = selectedOptions.map(
-    (value) => options.find((opt) => opt.value === value)?.text || ""
+  const selectedValuesLabel = selectedOptions.map(
+    (value) => options.find((option) => option.value === value)?.label || ""
   );
 
-  useEffect(() => {
-    if (!searchText) {
-      setFilteredOptions(options);
-    } else {
-      setFilteredOptions(prev =>
-        options.filter(opt =>
-          opt.text.toLowerCase().includes(searchText.toLowerCase())
-        )
-      );
-    }
-    console.log("text change", searchText);
-  }, [searchText, options]);
+
+
+  // Base styles (copied from your Input component)
+  let selectClasses = `
+     w-full rounded-lg border appearance-none px-4 py-2.5 text-sm
+    shadow-theme-xs placeholder:text-gray-400
+    focus:outline-hidden focus:ring-3
+    dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30
+    ${className}
+  `;
+
+  // Apply error/success/normal styles (same logic as Input)
+  if (error) {
+    selectClasses += `
+      border-error-500 
+      focus:border-error-300 
+      focus:ring-error-500/20 
+      dark:text-error-400 
+      dark:border-error-500 
+      dark:focus:border-error-800
+    `;
+  } else if (success) {
+    selectClasses += `
+      border-success-500 
+      focus:border-success-300 
+      focus:ring-success-500/20 
+      dark:text-success-400 
+      dark:border-success-500 
+      dark:focus:border-success-800
+    `;
+  } else {
+    selectClasses += `
+      bg-transparent text-gray-800 border-gray-300
+      focus:border-brand-300 focus:ring-brand-500/20
+      dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800
+    `;
+  }
+
+
 
   return (
-    <div className="w-full" ref={wrapperRef}>
-      {label && <label className="mb-1.5 block text-sm font-medium text-gray-700">{label}</label>}
+    <div className="w-full">
+      <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        {label}
+      </label>
 
-      <div className="relative">
-        {/* Main dropdown box */}
-        <div
-          className="flex flex-wrap items-center min-h-[44px] border border-gray-300 rounded-lg p-1.5 cursor-pointer"
-          onClick={toggleDropdown}
-        >
-          <div className="flex flex-wrap gap-2 flex-1">
-            {selectedValuesText.length > 0
-              ? selectedValuesText.map((text, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-1 bg-gray-100 text-gray-800 rounded-full px-2 py-1 text-sm"
+      <div className={`relative z-20 inline-block w-full`}>
+        <div ref={containerRef} className="relative flex flex-col items-center w-full">
+          <div onClick={toggleDropdown} className="w-full">
+
+            {/* INPUT WRAPPER WITH INPUT-LIKE ERROR/SUCCESS STYLING */}
+            <div className={selectClasses + " mb-2 flex min-h-11 py-1.5 pl-2 pr-2 shadow-theme-xs"}>
+
+              <div className="flex flex-wrap h-fit flex-auto gap-1">
+                {selectedValuesLabel.length > 0 ? (
+                  selectedValuesLabel.map((label, index) => (
+                    <div
+                      key={index}
+                      className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
+                    >
+                      <span className="flex-initial max-w-full">{label}</span>
+                      <div className="flex flex-row-reverse flex-auto">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeOption(selectedOptions[index]);
+                          }}
+                          className="pl-2 text-gray-500 cursor-pointer group-hover:text-gray-400 dark:text-gray-400"
+                        >
+                          <svg
+                            className="fill-current"
+                            role="button"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <input
+                    placeholder={placeholder}
+                    className="w-full h-full p-1 pr-2 text-sm bg-transparent border-0 outline-hidden appearance-none placeholder:text-gray-800 focus:border-0 focus:outline-hidden focus:ring-0 dark:placeholder:text-white/90"
+                    readOnly
+                    value={placeholder}
+                  />
+                )}
+              </div>
+
+              {selectedOptions.length > 0 && (
+                <button
+                  type="button"
+                  className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!disabled) setSelectedOptions([]); onChange?.([]);
+                  }}
                 >
-                  {text}
-                  <span
-                    className="cursor-pointer text-gray-500 hover:text-gray-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeOption(selectedOptions[index]);
-                    }}
+                  <svg
+                    className="fill-current"
+                    role="button"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    &times;
-                  </span>
-                </div>
-              ))
-              : <span className="text-gray-400">Select option</span>}
-          </div>
-          <div className="ml-2">
-            <svg
-              className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Dropdown panel */}
-        {isOpen && (
-          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-            {/* Search input */}
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search..."
-              className="w-full border-b border-gray-200 p-2 outline-none sticky top-0 bg-white z-10"
-            />
-
-            {/* Options list */}
-            <div>
-              {filteredOptions.length > 0 ? (
-                filteredOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center p-2 cursor-pointer hover:bg-gray-100 ${selectedOptions.includes(option.value) ? "bg-gray-100" : ""
-                      }`}
-                    onClick={() => handleSelect(option.value)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedOptions.includes(option.value)}
-                      readOnly
-                      className="mr-2"
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
                     />
-                    {option.text}
-                  </div>
-                ))
-              ) : (
-                <div className="p-2 text-gray-400">No options found</div>
+                  </svg>
+                </button>
               )}
+
+              <div className="flex items-center py-1 pl-1 pr-1 w-7">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); toggleDropdown(); }}
+                  className="w-5 h-5 text-gray-700 outline-hidden cursor-pointer dark:text-gray-400"
+                >
+                  <svg
+                    className={`stroke-current ${isOpen ? "rotate-180" : ""}`}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4.79175 7.39551L10.0001 12.6038L15.2084 7.39551"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+
             </div>
           </div>
+
+          {isOpen && (
+            <div
+              className="absolute left-0 z-40 w-full overflow-y-auto bg-white rounded-lg shadow-sm top-full max-h-select dark:bg-gray-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white dark:bg-gray-900 p-2 border-b border-gray-200 dark:border-gray-800">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    placeholder="Search options..."
+                    className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white outline-none focus:border-primary-500 dark:focus:border-primary-500"
+                  />
+
+                  <svg
+                    className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="flex flex-col h-auto max-h-60 overflow-y-auto">
+                {filteredOptions.map((option, index) => (
+                  <div
+                    key={index}
+                    className="hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800"
+                    onClick={() => { setSearchText(""); handleSelect(option.value); }}
+                  >
+                    <div
+                      className={`relative flex w-full items-center p-2 pl-2 ${selectedOptions.includes(option.value)
+                        ? "bg-gray-100"
+                        : ""
+                        }`}
+                    >
+                      <div className="mx-2 leading-6 text-gray-800 dark:text-white/90">
+                        {option.label}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Hint Area */}
+        {hint && (
+          <p
+            className={`mt-1.5 text-xs ${error
+              ? "text-error-500"
+              : success
+                ? "text-success-500"
+                : "text-gray-500"
+              }`}
+          >
+            {hint}
+          </p>
         )}
       </div>
     </div>

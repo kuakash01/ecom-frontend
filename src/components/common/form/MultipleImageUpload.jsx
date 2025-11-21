@@ -1,131 +1,72 @@
-
-// import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect, useRef } from "react";
 // import { motion } from "framer-motion";
 // import { Plus, Trash2 } from "lucide-react";
 
-// const ImageUpload = ({
-//   label,
-//   value = [],
-//   onChange,
-//   multiple = false,
-//   required = false,
-  
-// }) => {
+// const MultipleImageUpload = ({ label, value = [], onChange, required = false, showLabel = false }) => {
 //   const [previews, setPreviews] = useState([]);
+//   const objectUrlsRef = useRef([]);
 
-//  useEffect(() => {
-//   if (!value) {
-//     setPreviews([]);
-//     return;
-//   }
+//   useEffect(() => {
+//     // Clean up old object URLs
+//     objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+//     objectUrlsRef.current = [];
 
-//   if (multiple) {
-//     const mapped = value.map((file) => {
+//     if (!value || value.length === 0) {
+//       setPreviews([]);
+//       return;
+//     }
+
+//     const newPreviews = value.map(file => {
 //       if (file instanceof File) {
-//         return URL.createObjectURL(file);
-//       }
-//       if (typeof file === "string") {
-//         return file; // already a URL
+//         const url = URL.createObjectURL(file);
+//         objectUrlsRef.current.push(url);
+//         return url;
+//       } else if (typeof file === "string") {
+//         return file;
 //       }
 //       return "";
 //     });
-//     setPreviews(mapped);
-//   } else {
-//     let src = "";
-//     if (value instanceof File) src = URL.createObjectURL(value);
-//     else if (typeof value === "string") src = value;
-//     setPreviews(src ? [src] : []);
-//   }
-// }, [value, multiple]);
 
-// // useEffect(() => {
-// //   if (!value) {
-// //     if (previews.length > 0) setPreviews([]);
-// //     return;
-// //   }
+//     setPreviews(newPreviews);
 
-// //   let newPreviews = [];
+//     return () => {
+//       objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+//     };
+//   }, [value]);
 
-// //   if (multiple && Array.isArray(value)) {
-// //     newPreviews = value.map(file => {
-// //       if (file instanceof File) return URL.createObjectURL(file);
-// //       if (typeof file === "string") return file;
-// //       return "";
-// //     });
-// //   } else {
-// //     if (value instanceof File) newPreviews = [URL.createObjectURL(value)];
-// //     else if (typeof value === "string") newPreviews = [value];
-// //   }
-
-// //   // Only update state if different
-// //   if (JSON.stringify(newPreviews) !== JSON.stringify(previews)) {
-// //     setPreviews(newPreviews);
-// //   }
-
-// // }, [value, multiple, previews]);
-
-//   const handleFileChange = (e) => {
+//   const handleFileChange = e => {
 //     const files = Array.from(e.target.files);
 //     if (!files.length) return;
-
-//     if (multiple) {
-//       const updated = [...(value || []), ...files];
-//       onChange(updated);
-//     } else {
-//       onChange(files[0]);
-//     }
-
-//     e.target.value = ""; // reset input so reselect works
+//     onChange([...(Array.isArray(value) ? value : []), ...files]);
+//     e.target.value = "";
 //   };
 
-//   const handleRemove = (index = 0) => {
-//     if (multiple) {
-//       const newFiles = [...value];
-//       newFiles.splice(index, 1);
-//       onChange(newFiles);
-//       setPreviews(previews.filter((_, i) => i !== index));
-//     } else {
-//       onChange(null);
-//       setPreviews([]);
-//     }
+//   const handleRemove = index => {
+//     const newFiles = [...value];
+//     newFiles.splice(index, 1);
+//     onChange(newFiles);
 //   };
 
 //   return (
 //     <div>
-//       {label && (
+//       {showLabel && label && (
 //         <label className="font-medium text-sm text-gray-700 dark:text-gray-300">
 //           {label} {required && <span className="text-red-400">*</span>}
 //         </label>
 //       )}
-
-//       {/* Hidden File Input */}
 //       <input
 //         type="file"
-//         id={`${label}-input`}
 //         accept="image/*"
-//         multiple={multiple}
+//         multiple
 //         className="hidden"
+//         id={`${label}-input`}
 //         onChange={handleFileChange}
 //       />
-
-//       {/* Image Previews */}
 //       <div className="flex flex-wrap gap-3 mt-2">
 //         {previews.map((src, index) => (
-//           <motion.div
-//             key={index}
-//             initial={{ opacity: 0, scale: 0.8 }}
-//             animate={{ opacity: 1, scale: 1 }}
-//             whileHover={{ scale: 1.05 }}
-//             className="relative w-28 h-28 rounded-lg overflow-hidden border border-gray-300 shadow-sm group"
-//           >
-//             <img
-//               src={src}
-//               alt={`preview-${index}`}
-//               className="object-cover w-full h-full"
-//             />
+//           <motion.div key={index} className="relative w-28 h-28 rounded-lg overflow-hidden border border-gray-300 shadow-sm group">
+//             <img src={src} alt={`preview-${index}`} className="object-cover w-full h-full" />
 //             <motion.button
-//               whileHover={{ scale: 1.1 }}
-//               whileTap={{ scale: 0.9 }}
 //               type="button"
 //               onClick={() => handleRemove(index)}
 //               className="absolute top-1 right-1 bg-black/60 hover:bg-black text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -134,23 +75,19 @@
 //             </motion.button>
 //           </motion.div>
 //         ))}
-
-//         {/* Add Button */}
-//         {(multiple || previews.length === 0) && (
-//           <motion.label
-//             htmlFor={`${label}-input`}
-//             whileHover={{ scale: 1.1 }}
-//             className="w-28 h-28 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100"
-//           >
-//             <Plus className="w-6 h-6 text-gray-500" />
-//           </motion.label>
-//         )}
+//         <motion.label
+//           htmlFor={`${label}-input`}
+//           whileHover={{ scale: 1.1 }}
+//           className="w-28 h-28 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100"
+//         >
+//           <Plus className="w-6 h-6 text-gray-500" />
+//         </motion.label>
 //       </div>
 //     </div>
 //   );
 // };
 
-// export default ImageUpload;
+// export default MultipleImageUpload;
 
 
 
@@ -160,94 +97,358 @@
 
 
 
+// import React, { useEffect, useState, useRef } from "react";
+// import { Plus, Trash2, Upload } from "lucide-react";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Plus, Trash2 } from "lucide-react";
+// export default function ImageUpload({
+//   label,
+//   value = [],
+//   onChange,
+//   multiple = false,
+//   required = false,
+//   showLabel = false,
+// }) {
+//   const inputRef = useRef(null);
+//   const [previews, setPreviews] = useState([]);
 
-const MultipleImageUpload = ({ label, value = [], onChange, required = false }) => {
-  const [previews, setPreviews] = useState([]);
-  const objectUrlsRef = useRef([]);
+//   // Convert incoming value → previewable format
+//   useEffect(() => {
+//     const mapped = value.map((item) => {
+//       if (item?.file) {
+//         return {
+//           ...item,
+//           preview: URL.createObjectURL(item.file),
+//         };
+//       }
+//       return {
+//         ...item,
+//         preview: item.url,
+//       };
+//     });
 
-  useEffect(() => {
-    // Clean up old object URLs
-    objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-    objectUrlsRef.current = [];
+//     setPreviews(mapped);
+//   }, [value]);
 
-    if (!value || value.length === 0) {
-      setPreviews([]);
-      return;
-    }
+//   const handleFileSelect = (e) => {
+//     const files = Array.from(e.target.files);
 
-    const newPreviews = value.map(file => {
-      if (file instanceof File) {
-        const url = URL.createObjectURL(file);
-        objectUrlsRef.current.push(url);
-        return url;
-      } else if (typeof file === "string") {
-        return file;
-      }
-      return "";
-    });
+//     const mapped = files.map((file) => ({
+//       file,
+//       preview: URL.createObjectURL(file),
+//       _id: null,
+//       url: null,
+//       public_id: null,
+//     }));
 
-    setPreviews(newPreviews);
+//     if (multiple) {
+//       onChange([...(value || []), ...mapped]);
+//     } else {
+//       onChange(mapped);
+//     }
+//   };
 
-    return () => {
-      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [value]);
+//   const handleDrop = (e) => {
+//     e.preventDefault();
+//     const files = Array.from(e.dataTransfer.files);
 
-  const handleFileChange = e => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    onChange([...(Array.isArray(value) ? value : []), ...files]);
-    e.target.value = "";
-  };
+//     const mapped = files.map((file) => ({
+//       file,
+//       preview: URL.createObjectURL(file),
+//     }));
 
-  const handleRemove = index => {
-    const newFiles = [...value];
-    newFiles.splice(index, 1);
-    onChange(newFiles);
+//     if (multiple) {
+//       onChange([...(value || []), ...mapped]);
+//     } else {
+//       onChange(mapped);
+//     }
+//   };
+
+//   const removeImage = (index) => {
+//     const updated = value.filter((_, i) => i !== index);
+//     onChange(updated);
+//   };
+
+//   return (
+//     <div className="w-full space-y-3">
+//       {showLabel && label && (
+//         <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
+//       )}
+
+//       {/* Upload box */}
+//       <div
+//         onClick={() => inputRef.current.click()}
+//         onDragOver={(e) => e.preventDefault()}
+//         onDrop={handleDrop}
+//         className="border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer 
+//                    hover:border-gray-400 transition flex flex-col items-center"
+//       >
+//         <Upload size={32} className="text-gray-500 mb-2" />
+//         <p className="text-gray-600 text-sm">
+//           Drag & drop images or click to upload
+//         </p>
+
+//         <input
+//           type="file"
+//           multiple={multiple}
+//           required={required}
+//           ref={inputRef}
+//           onChange={handleFileSelect}
+//           className="hidden"
+//           accept="image/*"
+//         />
+//       </div>
+
+//       {/* Preview grid */}
+//       {previews.length > 0 && (
+//         <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+//           {previews.map((img, index) => (
+//             <div
+//               key={index}
+//               className="relative rounded-lg overflow-hidden group border"
+//             >
+//               <img
+//                 src={img.preview}
+//                 alt="preview"
+//                 className="w-full h-32 object-cover"
+//               />
+
+//               <button
+//                 type="button"
+//                 onClick={() => removeImage(index)}
+//                 className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded opacity-0 
+//                            group-hover:opacity-100 transition"
+//               >
+//                 <Trash2 size={16} />
+//               </button>
+
+//               {img.public_id && (
+//                 <span className="absolute bottom-1 left-1 bg-black/50 text-white px-2 text-[10px] rounded">
+//                   existing
+//                 </span>
+//               )}
+//             </div>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from "react";
+import { Plus, Trash2, Upload, GripVertical } from "lucide-react";
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableImage({ img, index, removeImage }) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: img.preview });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
 
   return (
-    <div>
-      {label && (
-        <label className="font-medium text-sm text-gray-700 dark:text-gray-300">
-          {label} {required && <span className="text-red-400">*</span>}
-        </label>
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        id={`${label}-input`}
-        onChange={handleFileChange}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative rounded-lg overflow-hidden group border"
+    >
+      <img
+        src={img.preview}
+        alt="preview"
+        className="w-full h-32 object-cover"
       />
-      <div className="flex flex-wrap gap-3 mt-2">
-        {previews.map((src, index) => (
-          <motion.div key={index} className="relative w-28 h-28 rounded-lg overflow-hidden border border-gray-300 shadow-sm group">
-            <img src={src} alt={`preview-${index}`} className="object-cover w-full h-full" />
-            <motion.button
-              type="button"
-              onClick={() => handleRemove(index)}
-              className="absolute top-1 right-1 bg-black/60 hover:bg-black text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash2 size={14} />
-            </motion.button>
-          </motion.div>
-        ))}
-        <motion.label
-          htmlFor={`${label}-input`}
-          whileHover={{ scale: 1.1 }}
-          className="w-28 h-28 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100"
-        >
-          <Plus className="w-6 h-6 text-gray-500" />
-        </motion.label>
+
+      {/* remove button */}
+      <button
+        type="button"
+        onClick={() => removeImage(index)}
+        className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded opacity-0 
+                   group-hover:opacity-100 transition"
+      >
+        <Trash2 size={16} />
+      </button>
+
+      {/* drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute bottom-2 left-2 bg-white/80 px-2 py-1 rounded text-[11px] 
+                   flex items-center gap-1 shadow cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical size={12} />
+        Move
       </div>
+
+      {img.public_id && (
+        <span className="absolute bottom-1 right-1 bg-black/50 text-white px-2 text-[10px] rounded">
+          existing
+        </span>
+      )}
     </div>
   );
-};
+}
 
-export default MultipleImageUpload;
+export default function ImageUpload({
+  label,
+  value = [],
+  onChange,
+  multiple = false,
+  required = false,
+  showLabel = false,
+}) {
+  const inputRef = useRef(null);
+  const [previews, setPreviews] = useState([]);
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  // Convert incoming value into previewable format
+  useEffect(() => {
+    const mapped = value.map((item) => {
+      if (item?.file) {
+        return {
+          ...item,
+          preview: URL.createObjectURL(item.file),
+        };
+      }
+      return {
+        ...item,
+        preview: item.url,
+      };
+    });
+
+    setPreviews(mapped);
+  }, [value]);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+
+    const mapped = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      _id: null,
+      url: null,
+      public_id: null,
+    }));
+
+    if (multiple) {
+      onChange([...(value || []), ...mapped]);
+    } else {
+      onChange(mapped);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+
+    const mapped = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    if (multiple) {
+      onChange([...(value || []), ...mapped]);
+    } else {
+      onChange(mapped);
+    }
+  };
+
+  const removeImage = (index) => {
+    const updated = value.filter((_, i) => i !== index);
+    onChange(updated);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = previews.findIndex((i) => i.preview === active.id);
+    const newIndex = previews.findIndex((i) => i.preview === over.id);
+
+    const newOrder = arrayMove(value, oldIndex, newIndex);
+
+    onChange(newOrder);
+  };
+
+  return (
+    <div className="w-full space-y-3">
+      {showLabel && label && (
+        <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
+      )}
+
+      {/* Upload box */}
+      <div
+        onClick={() => inputRef.current.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className="border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer 
+                   hover:border-gray-400 transition flex flex-col items-center"
+      >
+        <Upload size={32} className="text-gray-500 mb-2" />
+        <p className="text-gray-600 text-sm">
+          Drag & drop images or click to upload
+        </p>
+
+        <input
+          type="file"
+          multiple={multiple}
+          required={required}
+          ref={inputRef}
+          onChange={handleFileSelect}
+          className="hidden"
+          accept="image/*"
+        />
+      </div>
+
+      {/* Preview grid with sorting */}
+      {previews.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={previews.map((p) => p.preview)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+              {previews.map((img, index) => (
+                <SortableImage
+                  key={img.preview}
+                  img={img}
+                  index={index}
+                  removeImage={removeImage}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
+  );
+}
