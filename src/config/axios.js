@@ -2,7 +2,7 @@ import axios from 'axios';
 import { history } from '../utils/navigateHelper'; // Adjust the path as necessary
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api` || 'http://localhost:3000/api',
   withCredentials: true,
   timeout: 10000,
 });
