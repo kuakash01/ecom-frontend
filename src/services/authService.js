@@ -2,6 +2,8 @@ import api from "../config/axios"; // Adjust the path as necessary
 
 export const checkAuth = async () => {
     try {
+        const token = localStorage.getItem("token");
+        if (!token) return null;
         const res = await api.get('auth/me', {
             withCredentials: true,
             headers: {

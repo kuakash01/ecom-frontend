@@ -152,6 +152,7 @@ const AdminLogin = () => {
     try {
       const response = await api.post("auth/signin", formData);
       dispatch(login(response.data));
+      localStorage.setItem("token", response.data.token);
       navigate("/admin");
     } catch (err) {
       setError("Invalid email or password. Try again.");
