@@ -14,6 +14,7 @@ import { ReactComponent as ProductHighlightIcon } from "./product-highlight.svg?
 import { ReactComponent as HamBurgerOpenIcon } from "./hamburger-open.svg?react";
 import { ReactComponent as HamBurgerCloseIcon } from "./hamburger-closed.svg?react";
 import { ReactComponent as CmsIcon } from "./cms.svg?react";
+import { ReactComponent as CartIcon } from "./cart.svg?react";
 
 
 export {
@@ -31,4 +32,5 @@ export {
     HamBurgerOpenIcon,
     HamBurgerCloseIcon,
     CmsIcon,
+    CartIcon,
 };

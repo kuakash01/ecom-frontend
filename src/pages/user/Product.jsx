@@ -1,252 +1,1182 @@
+// import Badge from "../../components/common/ui/badge/Badge";
+// import { useLoaderData, useSearchParams, useParams } from "react-router-dom";
+// import { useState, useEffect, useRef } from "react";
+// import { ChevronUp, ChevronDown } from "lucide-react";
+// import api from "../../config/axios";
+// import NewArrivals from "../../components/user/product/NewArrivals";
+// import useScrollToTop from "../../hooks/useScrollToTop";
+
+
+// function Product() {
+//   const productDetail = useLoaderData();
+//   const thumbRef = useRef(null);
+//   const [searchParams, setSearchParams] = useSearchParams();
+//   const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
+//   const [selectedSize, setSelectedSize] = useState("");
+//   const { productId } = useParams();
+
+//   // product details
+//   const [currentGallery, setCurrentGallery] = useState([]);
+//   const [mainImage, setMainImage] = useState("");
+//   const [currentVariant, setCurrentVariant] = useState(null);
+//   const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
+
+//   const handleColorChange = (colorId) => {
+//     setSearchParams({ color: colorId });
+//     setSelectedColor(colorId);
+//   };
+
+
+//   const getColorGallery = async (productId, colorId) => {
+//     try {
+//       const response = await api.get(`/products/${productId}/color-gallery/${colorId}`);
+//       let gallery = response.data.data.gallery;
+//       setMainImage(gallery.length > 0 ? gallery[0] : "");
+//       return setCurrentGallery(gallery);
+//     } catch (error) {
+//       console.error("Error fetching color gallery:", error);
+//     }
+//     console.log("productid, colorid", productId, colorId);
+//   };
+
+//   const getColorId = (selectedColor, allColors) => {
+//     let colorId = "";
+//     allColors.forEach(cg => {
+//       if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
+//         colorId = cg._id;
+//       }
+//     });
+//     return colorId;
+//   }
+
+
+//   const findVariantsByColor = (colorId, variants) => {
+//     let vaiant = variants
+//       .filter(v => v.color._id.toString() === colorId.toString())
+//     console.log("vaiant of color", colorId, vaiant);
+//     return vaiant;
+//   }
+
+//   const setProductDetails = () => {
+//     // set details based on selected color
+//     if (selectedColor && productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase())) {
+//       getColorGallery(productId, getColorId(selectedColor, productDetail.allColors));
+
+//       // getVariantByColor(selectedColor);
+//     }
+
+//     // set default details if no color selected
+//     else {
+//       setCurrentGallery(productDetail.defaultGallery);
+//       setCurrentVariant(productDetail.defaultVariant);
+//       setMainImage(productDetail.defaultGallery.length > 0 ? productDetail.defaultGallery[0] : "");
+//       setAllVariantOfAColor(findVariantsByColor(productDetail.defaultVariant.color._id, productDetail.variants));
+
+
+//     }
+//     setSelectedColor(searchParams.get("color") || productDetail.defaultVariant.color.colorName);
+//   }
+
+
+//   useEffect(() => {
+//     if (!selectedColor) return;
+
+//     const variantsForColor = findVariantsByColor(
+//       getColorId(selectedColor, productDetail.allColors),
+//       productDetail.variants
+//     );
+
+//     setAllVariantOfAColor(variantsForColor);
+
+//     // Set default variant (first one) for this color
+//     if (variantsForColor.length > 0) {
+//       setCurrentVariant(variantsForColor[0]);
+//       setSelectedSize(variantsForColor[0].size); // set default size
+//     }
+//   }, [selectedColor, productDetail]);
+
+//   useEffect(() => {
+//     if (!selectedSize || allVariantOfAColor.length === 0) return;
+
+//     const variant = allVariantOfAColor.find(
+//       (v) => v.size.sizeValue.toLowerCase() === selectedSize.sizeValue.toLowerCase()
+//     );
+
+//     if (variant) setCurrentVariant(variant);
+//   }, [selectedSize, allVariantOfAColor]);
+
+
+
+//   useEffect(() => {
+//     setProductDetails();
+//     console.log("selected color changed", selectedColor);
+//   }, [productDetail, searchParams]);
+
+//   useScrollToTop(); // scroll to top on component load
+
+//   if (!productDetail) {
+//     return <div>Loading...</div>;
+//   }
+//   else if (productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase()) === undefined && selectedColor !== "") {
+//     return <div className="py-10 px-10 text-center">Color "{selectedColor}" not available for this product. <button onClick={() => setSearchParams({})} className="underline text-blue-600 cursor-pointer" >See all colors</button></div >
+//   }
+//   return (
+//     <div className="py-2  px-2 lg:px-10">
+//       {/* product details */}
+//       {productDetail && <div className="grid grid-cols-12 ">
+//         <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10 h-full">
+//           <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
+//             {currentGallery?.map((img, idx) => (
+//               <div
+//                 key={idx}
+//                 className={`min-w-32 md:min-w-full cursor-pointer rounded-2xl overflow-hidden border  ${mainImage.url === img.url ? "border-black " : "border-gray-200"}`}
+//                 onClick={() => setMainImage(img)}
+//               >
+//                 <img
+//                   className={`object-cover aspect-square  transition duration-150 hover:scale-105 `}
+//                   src={img.url}
+//                   alt={`Thumbnail ${idx}`}
+//                 />
+//               </div>
+//             ))}
+//           </div>
+
+
+
+//           <div className="col-span-12 lg:col-span-9 order-1 lg:order-2">
+//             <img
+//               src={mainImage ? mainImage.url : productDetail.thumbnail.url}
+//               alt="Main product"
+//               className="w-full h-auto object-cover shadow aspect-square rounded-2xl"
+//             />
+//           </div>
+//         </div>
+
+//         <div className="col-span-12 lg:col-span-6 flex flex-col justify-between p-4 lg:p-10 space-y-6">
+//           {/* Product Title */}
+//           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{productDetail.title}</h1>
+
+//           {/* Price & Discount */}
+//           <div className="flex items-center gap-4">
+//             <p className="text-2xl font-semibold text-black">₹{currentVariant?.price}</p>
+//             {currentVariant?.mrp && (
+//               <p className="text-lg text-gray-400 line-through">₹{currentVariant?.mrp}</p>
+//             )}
+//             <Badge className="bg-red-100 text-red-600 px-2 py-1 rounded">-40%</Badge>
+//           </div>
+
+//           {/* Product Description */}
+//           {/* Uncomment if needed */}
+//           {/* <p className="text-gray-700">{productDetail.description}</p> */}
+
+//           <div className="border-b border-gray-300"></div>
+
+//           {/* Color Selector */}
+//           <div>
+//             {productDetail.allColors.length > 1 && (
+//               <div>
+//                 <p className="pb-2 text-sm font-medium text-gray-500">Select Color</p>
+//                 <div className="flex gap-3">
+//                   {productDetail.allColors.map((color, idx) => (
+//                     <div
+//                       key={idx}
+//                       onClick={() => handleColorChange(color.colorName)}
+//                       className={`cursor-pointer px-3 py-1 rounded-full border transition-all duration-200 ${selectedColor.toLowerCase() === color.colorName.toLowerCase()
+//                         ? "border-blue-500 bg-blue-50 text-blue-600 font-semibold shadow-md"
+//                         : "border-gray-200 hover:border-gray-400 hover:bg-gray-100"
+//                         }`}
+//                     >
+//                       {color.colorName}
+//                     </div>
+//                   ))}
+//                 </div>
+//                 <div className="border-b border-gray-300"></div>
+//               </div>
+//             )}
+
+//           </div>
+
+
+//           {/* Size Selector */}
+//           <div>
+//             <p className="pb-2 text-sm font-medium text-gray-500">Select Size</p>
+//             <div className="flex gap-3">
+//               {allVariantOfAColor.map((variant, idx) => {
+//                 const isSelected = currentVariant?.size.sizeValue.toLowerCase() === variant.size.sizeValue.toLowerCase();
+//                 const isOutOfStock = variant.quantity === 0;
+
+//                 return (
+//                   <div
+//                     key={idx}
+//                     onClick={() => !isOutOfStock && setSelectedSize(variant.size)}
+//                     className={`cursor-pointer px-3 py-1 rounded-full border transition-all duration-200
+//         ${isSelected ? "border-blue-500 bg-blue-50 text-blue-600 font-semibold shadow-md" : ""}
+//         ${!isSelected && !isOutOfStock ? "border-gray-200 hover:border-gray-400 hover:bg-gray-100" : ""}
+//         ${isOutOfStock ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed" : ""}
+//       `}
+//                   >
+//                     {variant.size.sizeName} {isOutOfStock && "(Out of Stock)"}
+//                   </div>
+//                 );
+//               })}
+
+
+//             </div>
+//           </div>
+
+//           <div className="border-b border-gray-300"></div>
+
+//           {/* Quantity + Add to Cart */}
+//           <div className="flex flex-wrap items-center gap-4">
+//             <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+//               <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all">-</button>
+//               <span className="px-6 py-2">{1}</span>
+//               <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all">+</button>
+//             </div>
+//             <button className="flex-1 py-3 px-6 bg-black text-white font-semibold rounded-full hover:bg-gray-900 transition-colors">
+//               Add to Cart
+//             </button>
+//           </div>
+//         </div>
+
+
+//       </div>}
+//       {/* product reviews */}
+//       <div className="">
+//         <div className="grid grid-cols-3">
+//           <span className="text-center p-3 border-b border-b-brand-200/60">
+//             Product Details
+//           </span>
+//           <span className="text-center p-3 border-b-4 border-black/60">
+//             Rating & Reviews
+//           </span>
+//           <span className="text-center p-3 border-b border-b-brand-200/60">
+//             FAQs
+//           </span>
+//         </div>
+//         <div className="flex justify-between my-5">
+//           <div className="space-x-2">
+//             <span className="text-xl font-bold">All Reviews</span>
+//             <span>(562)</span>
+//           </div>
+//           <div className="flex gap-3">
+//             <div className="py-2 px-5 bg-gray-200 rounded-full">f</div>
+//             <div className="py-2 px-5 bg-gray-200 rounded-full">Latest </div>
+//             <div className="py-2 px-5 bg-black text-white rounded-full">
+//               Write a Review
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="m-10">
+//           <div className="grid grid-cols-12 gap-4 py-5">
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//           </div>
+//           <button className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
+//             Load More Reviews
+//           </button>
+//         </div>
+
+//         <div className=" my-6  rounded-lg ">
+//           <NewArrivals />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default Product;
+
+
+
+
+
+
+
+
+// import Badge from "../../components/common/ui/badge/Badge";
+// import { useSearchParams, useParams } from "react-router-dom";
+// import { useState, useEffect, useRef, use } from "react";
+// import { ChevronUp, ChevronDown } from "lucide-react";
+// import api from "../../config/axios";
+// import NewArrivals from "../../components/user/product/NewArrivals";
+// import useScrollToTop from "../../hooks/useScrollToTop";
+
+// import ProductSkeleton from "../../components/user/product/ProductSkeleton";
+
+
+
+// function Product() {
+//   // const productDetail = useLoaderData();
+//   const [productDetail, setProductDetail] = useState(null);
+
+//   const [searchParams, setSearchParams] = useSearchParams();
+//   const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
+//   const [selectedSize, setSelectedSize] = useState("");
+//   const { productId } = useParams();
+
+//   // product details
+//   const [currentGallery, setCurrentGallery] = useState([]);
+//   const [mainImage, setMainImage] = useState("");
+//   const [currentVariant, setCurrentVariant] = useState(null);
+//   const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
+
+//   const handleColorChange = (colorId) => {
+//     setSearchParams({ color: colorId });
+//     setSelectedColor(colorId);
+//   };
+
+//   const getProductDetails = async (productId) => {
+//     try {
+//       const response = await api.get(`/products/${productId}`);
+//       setProductDetail(response.data.data);
+//       console.log("product detail response", response.data.data);
+//     } catch (error) {
+//       console.error("Error fetching product details:", error);
+//     }
+//   };
+
+//   const getColorGallery = async (productId, colorId) => {
+//     try {
+//       const response = await api.get(`/products/${productId}/color-gallery/${colorId}`);
+//       let gallery = response.data.data.gallery;
+//       setMainImage(gallery.length > 0 ? gallery[0] : "");
+//       setCurrentGallery(gallery);
+//     } catch (error) {
+//       console.error("Error fetching color gallery:", error);
+//     }
+//     console.log("productid, colorid", productId, colorId);
+//   };
+
+//   const getColorId = (selectedColor, allColors) => {
+//     let colorId = "";
+//     allColors.forEach(cg => {
+//       if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
+//         colorId = cg._id;
+//       }
+//     });
+//     return colorId;
+//   }
+
+
+//   const findVariantsByColor = (colorId, variants) => {
+//     let vaiant = variants
+//       .filter(v => v.color._id.toString() === colorId.toString())
+//     console.log("vaiant of color", colorId, vaiant);
+//     return vaiant;
+//   }
+
+
+//   useEffect(() => {
+//     if (!productDetail) return;
+
+//     // If selectedColor exists & valid
+//     const chosenColor = selectedColor || productDetail.defaultVariant.color.colorName;
+//     setSelectedColor(chosenColor);
+
+//     const colorId = getColorId(chosenColor, productDetail.allColors);
+
+//     const variantsForColor = findVariantsByColor(colorId, productDetail.variants);
+//     setAllVariantOfAColor(variantsForColor);
+
+//     const variantToUse = variantsForColor[0] || productDetail.defaultVariant;
+//     setCurrentVariant(variantToUse);
+//     setSelectedSize(variantToUse.size);
+
+//     // Set gallery
+//     if (variantsForColor.length > 0) {
+//       getColorGallery(productId, colorId);
+//     } else {
+//       setCurrentGallery(productDetail.defaultGallery);
+//       setMainImage(productDetail.defaultGallery[0]);
+//     }
+//   }, [productDetail]);
+
+
+
+//   useEffect(() => {
+//     const fetchProduct = async () => {
+//       try {
+//         const response = await api.get(`/products/${productId}`);
+//         setProductDetail(response.data.data);
+//       } catch (error) {
+//         console.error("Error fetching product:", error);
+//       }
+//     };
+
+//     fetchProduct();
+//   }, [productId]);
+
+//   useEffect(() => {
+//     if (!productDetail || !selectedColor) return;
+
+//     const colorId = getColorId(selectedColor, productDetail.allColors);
+//     const variantsForColor = findVariantsByColor(colorId, productDetail.variants);
+
+//     setAllVariantOfAColor(variantsForColor);
+//     setCurrentVariant(variantsForColor[0]);
+//     setSelectedSize(variantsForColor[0].size);
+//     getColorGallery(productId, colorId);
+//   }, [selectedColor]);
+
+//   useEffect(() => {
+//     if (!selectedSize || allVariantOfAColor.length === 0) return;
+
+//     const variant = allVariantOfAColor.find(
+//       v => v.size.sizeValue.toLowerCase() === selectedSize.sizeValue.toLowerCase()
+//     );
+
+//     if (variant) setCurrentVariant(variant);
+//   }, [selectedSize, allVariantOfAColor]);
+
+
+//   useScrollToTop(); // scroll to top on component load
+
+//   if (!productDetail) {
+//     return <ProductSkeleton />;
+//   }
+
+//   if (productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase()) === undefined && selectedColor !== "") {
+//     return <div className="py-10 px-10 text-center">Color "{selectedColor}" not available for this product. <button onClick={() => setSearchParams({})} className="underline text-blue-600 cursor-pointer" >See all colors</button></div >
+//   }
+
+//   return (
+//     <div className="w-full">
+//       {/* product details */}
+//       {productDetail && (
+//         <div className="grid grid-cols-12 ">
+
+//           {/* Left: Image Gallery */}
+//           <div className="col-span-12 md:col-span-6 flex items-start flex-col-reverse lg:flex-row gap-4 md:sticky top-0 p-5">
+
+//             {/* Thumbnails */}
+//             <div 
+//             className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:h-[70vh]"
+//             >
+
+//               {currentGallery?.map((img, idx) => (
+//                 <div
+//                   key={idx}
+//                   onClick={() => setMainImage(img)}
+//                   className={`min-w-20 lg:min-w-0 lg:w-20 h-20 rounded-xl border overflow-hidden cursor-pointer transition ${mainImage.url === img.url
+//                     ? "border-black"
+//                     : "border-gray-300 hover:border-black"
+//                     }`}
+//                 >
+//                   <img
+//                     src={img.url}
+//                     className="w-full h-full object-cover"
+//                     alt={`Thumbnail ${idx}`}
+//                   />
+//                 </div>
+//               ))}
+//             </div>
+
+//             {/* Main Image */}
+//             {/* <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden shadow"> */}
+//             <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden  bg-white">
+
+//               <img
+//                 src={mainImage.url}
+//                 alt="Main product"
+//                 className="w-full h-full object-contain"
+//               />
+//             </div>
+//           </div>
+
+
+//           {/* Right: Product Info */}
+//           <div className="col-span-12 md:col-span-6 flex flex-col gap-6 p-5">
+
+//             {/* Title + Ratings */}
+//             <div className="flex flex-col gap-2">
+//               <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 leading-tight">
+//                 {productDetail.title}
+//               </h1>
+//               <div className="flex gap-2 items-center">
+//                 <span className="text-yellow-500 text-lg">★★★★☆</span>
+//                 <span className="text-sm text-gray-600">(128 Reviews)</span>
+//               </div>
+//             </div>
+
+//             {/* Price */}
+//             <div className="flex items-center gap-4">
+//               <p className="text-3xl font-bold">₹{currentVariant?.price}</p>
+//               {currentVariant?.mrp && (
+//                 <p className="text-lg text-gray-400 line-through">
+//                   ₹{currentVariant?.mrp}
+//                 </p>
+//               )}
+//               <Badge className="bg-red-200 text-red-700 rounded-full px-3 py-1 text-sm">
+//                 -40%
+//               </Badge>
+//             </div>
+
+//             {/* Highlights */}
+//             {/* <ul className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+//               <li>Free Delivery</li>
+//               <li>7-Day Return</li>
+//               <li>Cash on Delivery</li>
+//               <li>1 Year Warranty</li>
+//             </ul> */}
+
+
+//             {/* Color Selector */}
+//             {productDetail.allColors?.length > 1 && (
+//               <div className="flex flex-col gap-3">
+//                 <p className="text-sm font-medium text-gray-700">Select Color</p>
+//                 <div className="flex gap-3 flex-wrap">
+//                   {productDetail.allColors.map((color, idx) => {
+//                     const isSelected =
+//                       selectedColor?.toLowerCase() === color.colorName.toLowerCase()
+
+//                     return (
+//                       <div
+//                         key={idx}
+//                         onClick={() => handleColorChange(color.colorName)}
+//                         className={` w-8 h-8 rounded-full cursor-pointer transition-all duration-200 ${isSelected ? "border-2 border-gray-400 scale-105 shadow-md" : "border border-transparent"}hover:scale-105 `}
+//                         style={{ backgroundColor: color.colorHex }}
+//                       />
+//                     )
+//                   })}
+
+//                 </div>
+//               </div>
+//             )}
+
+
+//             {/* Size Selector */}
+//             <div className="flex flex-col gap-3">
+//               <p className="text-sm font-medium text-gray-700">Select Size</p>
+//               <div className="flex gap-3 flex-wrap">
+//                 {allVariantOfAColor.map((variant, idx) => {
+//                   const isSelected =
+//                     currentVariant?.size.sizeValue.toLowerCase() ===
+//                     variant.size.sizeValue.toLowerCase();
+//                   const isOutOfStock = variant.quantity === 0;
+
+//                   return (
+//                     <div
+//                       key={idx}
+//                       onClick={() => !isOutOfStock && setSelectedSize(variant.size)}
+//                       className={`px-4 py-1 rounded-lg border text-sm  transition ${isSelected
+//                         ? "bg-black text-white border-black"
+//                         : "border-gray-300"
+//                         } ${!isSelected &&
+//                         !isOutOfStock &&
+//                         "hover:border-black hover:bg-gray-100 cursor-pointer"
+//                         } ${isOutOfStock &&
+//                         "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed "
+//                         }`}
+//                     >
+//                       {variant.size.sizeValue}
+//                       {/* {isOutOfStock && " (Out of Stock)"} */}
+//                     </div>
+//                   );
+//                 })}
+//               </div>
+
+//             </div>
+
+//             <div className="flex flex-col md:flex-row items-center gap-4">
+//               {currentVariant?.quantity > 0 ? (
+//                 <>
+//                   <button className="flex-1 py-3 bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
+//                     Buy Now
+//                   </button>
+//                   <button className="flex-1 py-3 bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">
+//                     Add to Cart
+//                   </button>
+//                 </>
+//               ) : (
+//                 <div className="w-full py-3 bg-red-200 text-red-700 rounded-full text-center font-semibold tracking-wide">
+//                   OUT OF STOCK
+//                 </div>
+//               )}
+//             </div>
+
+
+//             <div className="text-sm text-gray-600">
+//               🚚 Delivery in 3-5 days
+//             </div>
+
+//             {/* 
+//             <section className="mt-10 p-0 m-0">
+//               <h2 className="text-xl font-semibold text-neutral-900 mb-3">
+//                 Product Information
+//               </h2>
+
+//               <div className="text-neutral-700 leading-relaxed text-sm md:text-base">
+//                 {productDetail.description}
+//               </div>
+//             </section> */}
+
+
+//           </div>
+
+//         </div>
+//       )}
+
+//       {/* <div className="">
+//         <div className="grid grid-cols-3">
+//           <span className="text-center p-3 border-b border-b-brand-200/60">
+//             Product Details
+//           </span>
+//           <span className="text-center p-3 border-b-4 border-black/60">
+//             Rating & Reviews
+//           </span>
+//           <span className="text-center p-3 border-b border-b-brand-200/60">
+//             FAQs
+//           </span>
+//         </div>
+//         <div className="flex justify-between my-5">
+//           <div className="space-x-2">
+//             <span className="text-xl font-bold">All Reviews</span>
+//             <span>(562)</span>
+//           </div>
+//           <div className="flex gap-3">
+//             <div className="py-2 px-5 bg-gray-200 rounded-full">f</div>
+//             <div className="py-2 px-5 bg-gray-200 rounded-full">Latest </div>
+//             <div className="py-2 px-5 bg-black text-white rounded-full">
+//               Write a Review
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="m-10">
+//           <div className="grid grid-cols-12 gap-4 py-5">
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
+//               <div>⭐️⭐️⭐️⭐️⭐️</div>
+//               <p className="text-md font-bold">name</p>
+//               <p>
+//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
+//                 deserunt!
+//               </p>
+//               <p>date</p>
+//             </div>
+//           </div>
+//           <button className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
+//             Load More Reviews
+//           </button>
+//         </div>
+
+//         <div className=" my-6  rounded-lg ">
+//           <NewArrivals />
+//         </div>
+//       </div> */}
+//     </div>
+//   );
+// }
+
+// export default Product;
+
+
+
+
+
+
+
+
+
+
 import Badge from "../../components/common/ui/badge/Badge";
-import { useLoaderData, useSearchParams, useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { useSearchParams, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import api from "../../config/axios";
-import NewArrivals from "../../components/user/product/NewArrivals";
+import ProductSkeleton from "../../components/user/product/ProductSkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
 
-
 function Product() {
-  const productDetail = useLoaderData();
-  const thumbRef = useRef(null);
+  const [productDetail, setProductDetail] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
+  const [selectedSize, setSelectedSize] = useState("");
+
   const { productId } = useParams();
 
+  // product details
   const [currentGallery, setCurrentGallery] = useState([]);
   const [mainImage, setMainImage] = useState("");
   const [currentVariant, setCurrentVariant] = useState(null);
+  const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
 
-  const handleColorChange = (colorId) => {
-    setSearchParams({ color: colorId });
-    setSelectedColor(colorId);
+  const handleColorChange = (colorName) => {
+    setSearchParams({ color: colorName });
+    setSelectedColor(colorName);
+  };
+
+  const getProductDetails = async () => {
+    try {
+      const response = await api.get(`/products/${productId}`);
+      setProductDetail(response.data.data);
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+    }
   };
 
   const getColorGallery = async (productId, colorId) => {
     try {
-      const response = await api.get(`/products/${productId}/color-gallery/${colorId}`);
-      let gallery = response.data.data.gallery;
+      const response = await api.get(
+        `/products/${productId}/color-gallery/${colorId}`
+      );
+      const gallery = response.data.data.gallery;
       setMainImage(gallery.length > 0 ? gallery[0] : "");
-      return setCurrentGallery(gallery);
+      setCurrentGallery(gallery);
     } catch (error) {
       console.error("Error fetching color gallery:", error);
     }
-    console.log("productid, colorid", productId, colorId);
   };
 
-  const getColorId = (selectedColor, productDetail) => {
+  const getColorId = (selectedColor, allColors) => {
     let colorId = "";
-    productDetail.allColors.forEach(cg => {
+    allColors.forEach((cg) => {
       if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
         colorId = cg._id;
       }
     });
     return colorId;
-  }
+  };
 
+  const findVariantsByColor = (colorId, variants) => {
+    return variants.filter((v) => v.color._id.toString() === colorId.toString());
+  };
+
+  // First fetch product
   useEffect(() => {
-    if (selectedColor && productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase())) {
-      getColorGallery(productId, getColorId(selectedColor, productDetail));
+    getProductDetails();
+  }, [productId]);
+
+  // Handle product detail load
+  useEffect(() => {
+    if (!productDetail) return;
+
+    const normalize = (str) =>
+      str ? str.trim().toLowerCase() : "";
+
+    const urlColorRaw = searchParams.get("color");
+    const urlColor = normalize(urlColorRaw);
+
+    let finalColor = "";
+    let variantsForColor = [];
+
+    // 1. If URL has color, force-select that color
+    if (urlColor) {
+      const found = productDetail.allColors.find(
+        (c) => normalize(c.colorName) === urlColor
+      );
+      if (found) {
+        finalColor = found.colorName;
+        const colorId = found._id.toString();
+        variantsForColor = productDetail.variants.filter(
+          (v) => v.color._id.toString() === colorId
+        );
+      }
+    }
+
+    // 2. If no URL or invalid URL color, auto-select first IN-STOCK color
+    if (!finalColor) {
+      const validColorObj = productDetail.allColors.find((color) => {
+        const list = productDetail.variants.filter(
+          (v) =>
+            v.color._id.toString() === color._id.toString() &&
+            v.quantity > 0
+        );
+        return list.length > 0;
+      });
+
+      finalColor = validColorObj
+        ? validColorObj.colorName
+        : productDetail.defaultVariant.color.colorName;
+
+      const colorId = getColorId(finalColor, productDetail.allColors);
+      variantsForColor = findVariantsByColor(
+        colorId,
+        productDetail.variants
+      );
+    }
+
+    setSelectedColor(finalColor);
+    setAllVariantOfAColor(variantsForColor);
+
+    const colorId = getColorId(finalColor, productDetail.allColors);
+    if (variantsForColor.length > 0) {
+      getColorGallery(productId, colorId);
     } else {
       setCurrentGallery(productDetail.defaultGallery);
-      setCurrentVariant(productDetail.defaultVariant);
-      setMainImage(productDetail.defaultGallery.length > 0 ? productDetail.defaultGallery[0] : "");
+      setMainImage(productDetail.defaultGallery[0]);
     }
-    setSelectedColor(searchParams.get("color") || "");
 
-    console.log("selected color changed", selectedColor);
+    setCurrentVariant(null);
+    setSelectedSize("");
   }, [productDetail, searchParams]);
 
-  useScrollToTop(); // scroll to top on component load
+
+  // working
+  // useEffect(() => {
+  //   if (!productDetail) return;
+
+  //   // Find first color that has a variant with quantity > 0
+  //   const validColorObj = productDetail.allColors.find((color) => {
+  //     const variantsForColor = productDetail.variants.filter(
+  //       (v) => v.color._id.toString() === color._id.toString() && v.quantity > 0
+  //     );
+  //     return variantsForColor.length > 0;
+  //   });
+
+  //   const chosenColor = validColorObj
+  //     ? validColorObj.colorName
+  //     : productDetail.defaultVariant.color.colorName;
+
+  //   setSelectedColor(chosenColor);
+
+  //   const colorId = getColorId(chosenColor, productDetail.allColors);
+  //   const variantsForColor = findVariantsByColor(colorId, productDetail.variants);
+
+  //   setAllVariantOfAColor(variantsForColor);
+
+  //   if (variantsForColor.length > 0) {
+  //     // At least a gallery exists for that color
+  //     getColorGallery(productId, colorId);
+  //   } else {
+  //     // Fallback to product default gallery
+  //     setCurrentGallery(productDetail.defaultGallery);
+  //     setMainImage(productDetail.defaultGallery[0]);
+  //   }
+
+  //   // Reset size always
+  //   setCurrentVariant(null);
+  //   setSelectedSize("");
+  // }, [productDetail]);
+
+
+  // When color changes do not auto-select size
+
+
+
+  useEffect(() => {
+    if (!productDetail || !selectedColor) return;
+
+    const colorId = getColorId(selectedColor, productDetail.allColors);
+    const variantsForColor = findVariantsByColor(colorId, productDetail.variants);
+
+    setAllVariantOfAColor(variantsForColor);
+    getColorGallery(productId, colorId);
+
+    // Reset size and variant instead of auto-selecting
+    setCurrentVariant(null);
+    setSelectedSize("");
+  }, [selectedColor]);
+
+  // When user selects size manually
+  useEffect(() => {
+    if (!selectedSize || allVariantOfAColor.length === 0) return;
+
+    const variant = allVariantOfAColor.find(
+      (v) =>
+        v.size.sizeValue.toLowerCase() ===
+        selectedSize.sizeValue.toLowerCase()
+    );
+
+    if (variant) setCurrentVariant(variant);
+  }, [selectedSize, allVariantOfAColor]);
+
+  useScrollToTop();
 
   if (!productDetail) {
-    return <div>Loading...</div>;
+    return <ProductSkeleton />;
   }
-  else if (productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase()) === undefined && selectedColor !== "") {
-    return <div className="py-10 px-10 text-center">Color "{selectedColor}" not available for this product. <button onClick={() => setSearchParams({})} className="underline text-blue-600 cursor-pointer" >See all colors</button></div >
+
+  if (
+    productDetail.allColors.find(
+      (cg) =>
+        cg.colorName.toLowerCase() === selectedColor.toLowerCase()
+    ) === undefined &&
+    selectedColor !== ""
+  ) {
+    return (
+      <div className="py-10 px-10 text-center">
+        Color "{selectedColor}" not available for this product.
+        <button
+          onClick={() => setSearchParams({})}
+          className="underline text-blue-600 cursor-pointer"
+        >
+          See all colors
+        </button>
+      </div>
+    );
   }
+
   return (
-    <div className="py-2  px-2 lg:px-10">
+    <div className="w-full">
       {/* product details */}
-      {productDetail && <div className="grid grid-cols-12 ">
-        <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10 h-full">
-          <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
-            {currentGallery?.map((img, idx) => (
-              <div
-                key={idx}
-                className={`min-w-32 md:min-w-full cursor-pointer rounded-2xl overflow-hidden border  ${mainImage.url === img.url ? "border-black " : "border-gray-200"}`}
-                onClick={() => setMainImage(img)}
-              >
-                <img
-                  className={`object-cover aspect-square  transition duration-150 hover:scale-105 `}
-                  src={img.url}
-                  alt={`Thumbnail ${idx}`}
-                />
-              </div>
-            ))}
-          </div>
-
-
-
-          <div className="col-span-12 lg:col-span-9 order-1 lg:order-2">
-            <img
-              src={mainImage ? mainImage.url : productDetail.thumbnail.url}
-              alt="Main product"
-              className="w-full h-auto object-cover shadow aspect-square rounded-2xl"
-            />
-          </div>
-        </div>
-        <div className="col-span-12 lg:col-span-6 flex flex-col justify-between p-0 lg:p-10">
-          <h1 className="text-xl font-semibold">{productDetail.title}</h1>
-          {/* <div>
-            <span>⭐️⭐️⭐️⭐️⭐️</span>
-            <span>4.5/5</span>
-          </div> */}
-          <div className="flex gap-3 font-bold items-center">
-            <p className="text-2xl text-black">₹{currentVariant?.price || ""}</p>
-            <p className="text-2xl text-gray-500 line-through">₹{currentVariant?.mrp || ""}</p>
-            <span>
-              <Badge>-40%</Badge>
-            </span>
-          </div>
-          {/* <p className="text-gray-700 ">
-            {productDetail.description}
-          </p> */}
-          <div className="border-b border-b-brand-200/30"></div>
-          <div>
-            <p className="pb-2 text-xs text-gray-500">Select Colors</p>
-            <div className="flex gap-2">
-              {productDetail.allColors.map((color, idx) => (
-                <div key={idx} onClick={() => handleColorChange(color.colorName.toLowerCase())} className={` cursor-pointer ${selectedColor.toLowerCase() === color.colorName.toLowerCase() ? "text-blue-500 text-shadow-lg" : ""}`} >{color.colorName}</div>
+      {productDetail && (
+        <div className="grid grid-cols-12 ">
+          {/* Left: Image Gallery */}
+          <div className="col-span-12 md:col-span-6 flex items-start flex-col-reverse lg:flex-row gap-4 md:sticky top-0 p-5">
+            <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:h-[70vh]">
+              {currentGallery?.map((img, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setMainImage(img)}
+                  className={`min-w-20 lg:min-w-0 lg:w-20 h-20 rounded-xl border overflow-hidden cursor-pointer transition ${mainImage.url === img.url
+                    ? "border-black"
+                    : "border-gray-300 hover:border-black"
+                    }`}
+                >
+                  <img
+                    src={img.url}
+                    className="w-full h-full object-cover"
+                    alt={`Thumbnail ${idx}`}
+                  />
+                </div>
               ))}
             </div>
-          </div>
-          <div className="border-b border-b-brand-200/30"></div>
-          <div>
-            <p className="pb-2 text-xs text-gray-500">Select Size</p>
-            <div className="flex gap-3">
-              <div className="py-1 px-3 rounded-full bg-stone-200">Small</div>
-              <div className="py-1 px-3 rounded-full bg-stone-200">Medium</div>
-              <div className="py-1 px-3 rounded-full bg-stone-200">Large</div>
-            </div>
-          </div>
-          <div className="border-b border-b-brand-200/30"></div>
-          <div className="flex items-center flex-wrap gap-5">
-            <div className="flex">
-              <button className="py-2 px-4 bg-stone-200 rounded-l-full cursor-pointer">
-                -
-              </button>
-              <span className="py-2 px-4 bg-stone-200 ">1</span>
-              <button className="py-2 px-4 bg-stone-200 rounded-r-full cursor-pointer">
-                +
-              </button>
-            </div>
-            <button className="py-2 px-25 bg-black text-white rounded-full">
-              Add to cart
-            </button>
-          </div>
-        </div>
-      </div>}
-      {/* product reviews */}
-      <div className="">
-        <div className="grid grid-cols-3">
-          <span className="text-center p-3 border-b border-b-brand-200/60">
-            Product Details
-          </span>
-          <span className="text-center p-3 border-b-4 border-black/60">
-            Rating & Reviews
-          </span>
-          <span className="text-center p-3 border-b border-b-brand-200/60">
-            FAQs
-          </span>
-        </div>
-        <div className="flex justify-between my-5">
-          <div className="space-x-2">
-            <span className="text-xl font-bold">All Reviews</span>
-            <span>(562)</span>
-          </div>
-          <div className="flex gap-3">
-            <div className="py-2 px-5 bg-gray-200 rounded-full">f</div>
-            <div className="py-2 px-5 bg-gray-200 rounded-full">Latest </div>
-            <div className="py-2 px-5 bg-black text-white rounded-full">
-              Write a Review
-            </div>
-          </div>
-        </div>
 
-        <div className="m-10">
-          <div className="grid grid-cols-12 gap-4 py-5">
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-              <div>⭐️⭐️⭐️⭐️⭐️</div>
-              <p className="text-md font-bold">name</p>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-                deserunt!
-              </p>
-              <p>date</p>
+            <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden bg-white">
+              <img
+                src={mainImage.url}
+                alt="Main product"
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
-          <button className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
-            Load More Reviews
-          </button>
-        </div>
 
-        <div className=" my-6  rounded-lg ">
-          <NewArrivals />
+          {/* Right: Product Info */}
+          <div className="col-span-12 md:col-span-6 flex flex-col gap-6 p-5">
+            <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 leading-tight">
+              {productDetail.title}
+            </h1>
+
+            <div className="flex items-center gap-3">
+              {currentVariant ? (
+                <>
+                  <p className="text-3xl font-bold text-green-700">
+                    ₹{currentVariant.price}
+                  </p>
+
+                  {currentVariant.mrp && currentVariant.mrp > currentVariant.price && (
+                    <>
+                      <p className="text-lg line-through text-gray-500">
+                        ₹{currentVariant.mrp}
+                      </p>
+
+                      <Badge
+                        type="discount"><span>{`${Math.round(
+                          ((currentVariant.mrp - currentVariant.price) /
+                            currentVariant.mrp) *
+                          100
+                        )}% OFF`}</span></Badge>
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="text-lg font-medium text-gray-600">
+                  Select a size to view price
+                </p>
+              )}
+            </div>
+
+
+            {/* Color Selector */}
+            {productDetail.allColors?.length > 1 && (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-gray-700">Select Color</p>
+                <div className="flex gap-3 flex-wrap">
+                  {productDetail.allColors.map((color, idx) => {
+                    const isSelected =
+                      selectedColor?.toLowerCase() ===
+                      color.colorName.toLowerCase();
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleColorChange(color.colorName)}
+                        className={`w-8 h-8 rounded-full cursor-pointer transition-all duration-200 ${isSelected
+                          ? "border-2 border-gray-400 scale-105 shadow-md"
+                          : "border border-transparent"
+                          } hover:scale-105`}
+                        style={{ backgroundColor: color.colorHex }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Size Selector */}
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-gray-700">Select Size</p>
+              <div className="flex gap-3 flex-wrap">
+                {allVariantOfAColor.map((variant, idx) => {
+                  const isSelected =
+                    selectedSize &&
+                    selectedSize.sizeValue?.toLowerCase() ===
+                    variant.size.sizeValue.toLowerCase();
+                  const isOutOfStock = variant.quantity === 0;
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() =>
+                        !isOutOfStock && setSelectedSize(variant.size)
+                      }
+                      className={`px-4 py-1 rounded-lg border text-sm transition ${isSelected
+                        ? "bg-black text-white border-black"
+                        : "border-gray-300"
+                        } ${!isSelected &&
+                        !isOutOfStock &&
+                        "hover:border-black hover:bg-gray-100 cursor-pointer"
+                        } ${isOutOfStock &&
+                        "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                        }`}
+                    >
+                      {variant.size.sizeValue}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              {currentVariant ? (
+                currentVariant.quantity > 0 ? (
+                  <>
+                    <button className="flex-1 py-3 bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
+                      Buy Now
+                    </button>
+                    <button className="flex-1 py-3 bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">
+                      Add to Cart
+                    </button>
+                  </>
+                ) : (
+                  <div className="w-full py-3 bg-red-200 text-red-700 rounded-full text-center font-semibold tracking-wide">
+                    OUT OF STOCK
+                  </div>
+                )
+              ) : allVariantOfAColor.some((v) => v.quantity > 0) ? (
+                <div className="w-full py-3 bg-yellow-50 text-yellow-700 rounded-full text-center font-medium tracking-wide border border-yellow-300">
+                  Select a size to continue
+                </div>
+              ) : (
+                <div className="w-full py-3 bg-red-200 text-red-700 rounded-full text-center font-semibold tracking-wide">
+                  OUT OF STOCK
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

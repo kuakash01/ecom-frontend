@@ -6,6 +6,8 @@ import { toggleSidebar } from "../../redux/themeSlice"; // Import the action to 
 import api from "../../config/axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { CartIcon } from "../../icons"
+
 
 function Navbar({ categories, onSelect, onHover, }) {
 
@@ -146,6 +148,9 @@ const HeaderLayout = () => {
           <NavContainer categories={categoryTree} />
         )}
         <div className="flex gap-4 items-center">
+          <Link to="/cart">
+            <CartIcon className="text-2xl" />
+          </Link>
           <div>
             <ThemeToggle />
           </div>
