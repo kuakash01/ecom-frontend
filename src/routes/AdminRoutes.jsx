@@ -24,7 +24,7 @@ import SizesLoader from "../pages/admin/SizesLoader";
 
 
 import { login } from "../redux/adminSlice";
-import { checkAuth } from "../services/authService"; // Adjust the path as necessary
+import { checkAuthAdmin } from "../services/authService"; // Adjust the path as necessary
 import Loading from "../components/common/ui/loading/Loading";
 import AdminLogin from "../pages/admin/AdminLogin";
 
@@ -48,7 +48,7 @@ const ProtectedAdminRoute = () => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const user = await checkAuth();
+      const user = await checkAuthAdmin();
       if (user) {
         dispatch(login(user));
       }

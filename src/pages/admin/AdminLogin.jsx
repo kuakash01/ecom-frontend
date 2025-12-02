@@ -130,7 +130,7 @@ import api from "../../config/axios";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Navigate } from "react-router-dom";
 import { login } from "../../redux/adminSlice";
-import { checkAuth } from "../../services/authService";
+import { checkAuthAdmin } from "../../services/authService";
 import Loading from "../../components/common/ui/loading/Loading";
 
 const AdminLogin = () => {
@@ -150,7 +150,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setError("");
     try {
-      const response = await api.post("auth/signin", formData);
+      const response = await api.post("admin/auth/signin", formData);
       dispatch(login(response.data));
       localStorage.setItem("token", response.data.token);
       navigate("/admin");
@@ -162,7 +162,7 @@ const AdminLogin = () => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const user = await checkAuth();
+      const user = await checkAuthAdmin();
       if (user) dispatch(login(user));
       setLoading(false);
     };

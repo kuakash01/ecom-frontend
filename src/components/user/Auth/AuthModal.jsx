@@ -1,15 +1,211 @@
+// import { X } from "lucide-react";
+// import { useState, useEffect } from "react";
+// import api from "../../../config/axios";
+// import { setIsAuthModalOpen, setIsAuthenticated } from "../../../redux/userSlice";
+// import { useDispatch } from "react-redux";
+
+
+// const AuthModal = ({ isAuthModalOpen, onClose, isAuthenticated }) => {
+//   const [email, setEmail] = useState("");
+//   const [otp, setOtp] = useState("");
+//   const [showOtp, setShowOtp] = useState(false);
+
+//   const dispatch = useDispatch();
+
+//   useEffect(() => {
+//     if (isAuthModalOpen && !isAuthenticated) document.body.style.overflow = "hidden";
+//     else document.body.style.overflow = "auto";
+//   }, [isAuthModalOpen, isAuthenticated]);
+
+//   const handleSendOtp = async () => {
+//     try {
+//       const res = await api.post("auth/send-otp", {
+//         email
+//       });
+//       setShowOtp(true);
+//       console.log("otp send response", res.data);
+//     } catch (error) {
+//       console.error("Error sending otp: ", error);
+//     }
+//   }
+//   const handleSubmitOtp = async () => {
+//     try {
+//       const res = await api.post("auth/verify-otp", {
+//         email,
+//         otp
+//       });
+//       localStorage.setItem("token", res.data.token)
+//       if (res.data.status === "success")
+//         dispatch(setIsAuthenticated(true));
+//       dispatch(setIsAuthModalOpen(false));
+//     } catch (error) {
+//       console.error("Error Submitting otp: ", error)
+//     } finally {
+//       setShowOtp(false);
+//     }
+//   }
+
+
+//   if (!isAuthModalOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center animate-fadeIn">
+//       <div className="bg-white w-[90%] max-w-md rounded-2xl shadow-lg p-8 relative animate-slideUp">
+
+//         {/* Close Button */}
+//         <button
+//           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+//           onClick={onClose}
+//         >
+//           <X />
+//         </button>
+
+//         <h2 className="text-center text-xl font-bold mb-2">LOG IN / SIGN UP</h2>
+//         <p className="text-center text-gray-600 text-sm mb-6">
+//           Join now for seamless shopping experience
+//         </p>
+
+//         {/* Benefits */}
+//         <ul className="mb-6 text-gray-700 text-sm space-y-2">
+//           <li>✓ Easy order tracking</li>
+//           <li>✓ Manage returns within 15 days</li>
+//           <li>✓ Exclusive deals and extra perks</li>
+//         </ul>
+
+//         {/* Email Input */}
+//         <div>
+//           <label className="text-sm text-gray-700 font-medium">Email Address*</label>
+//           <input
+//             type="email"
+//             placeholder="Enter your email"
+//             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black outline-none mt-1"
+//             value={email}
+//             onChange={(e) => setEmail(e.target.value)}
+//           />
+
+//         </div>
+//         {/* Otp Input */}
+//         {showOtp && <div className="mt-2">
+//           <label className="text-sm text-gray-700 font-medium">Otp*</label>
+//           <input
+//             type="email"
+//             placeholder="Enter Otp"
+//             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black outline-none mt-1"
+//             value={otp}
+//             onChange={(e) => setOtp(e.target.value)}
+//           />
+//           <p className="text-xs text-gray-400 hover:text-blue-400 mt-2 "><button className="cursor-pointer" onClick={() => handleSendOtp()}>Resend</button></p>
+//         </div>}
+
+
+//         <p className="text-xs text-gray-500 mt-2">
+//           By continuing, I agree to the
+//           <span className="text-black font-medium cursor-pointer"> Terms & Conditions </span>
+//           and
+//           <span className="text-black font-medium cursor-pointer"> Privacy Policy</span>.
+//         </p>
+
+//         {/* Button */}
+//         {showOtp ? <button onClick={handleSubmitOtp} className="w-full mt-6 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-900 transition">Continue</button> : <button
+//           onClick={() => handleSendOtp()}
+//           className="w-full mt-6 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-900 transition"
+//         >
+//           Continue
+//         </button>}
+
+//         {/* Divider */}
+//         <div className="my-5 flex items-center gap-3">
+//           <div className="h-px bg-gray-300 w-full"></div>
+//           <span className="text-gray-500 text-sm">OR</span>
+//           <div className="h-px bg-gray-300 w-full"></div>
+//         </div>
+
+//         {/* Google Button */}
+//         <button className="w-full py-3 border border-gray-300 rounded-full flex items-center justify-center gap-3 hover:bg-gray-100 transition">
+//           <img
+//             src={`${import.meta.env.VITE_BASE_URL}/icons/google.png`}
+//             className="w-5 h-5"
+//             alt="Google logo"
+//           />
+//           Continue with Google
+//         </button>
+
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default AuthModal;
+
+
+
+
+
+
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import api from "../../../config/axios";
+import { setIsAuthModalOpen, setIsAuthenticated } from "../../../redux/userSlice";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 
-const AuthModal = ({ isOpen, onClose }) => {
+
+const AuthModal = ({ isAuthModalOpen, onClose, isAuthenticated }) => {
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
 
+  const dispatch = useDispatch();
+
+
+
+  const handleSendOtp = async () => {
+    try {
+      const res = await api.post("auth/send-otp", {
+        email
+      });
+      setShowOtp(true);
+      console.log("otp send response", res.data);
+    } catch (error) {
+      console.error("Error sending otp: ", error);
+    }
+  }
+  const handleSubmitOtp = async () => {
+    try {
+      const res = await api.post("auth/verify-otp", {
+        email,
+        otp
+      });
+      localStorage.setItem("token", res.data.token)
+      if (res.data.status === "success") {
+        dispatch(setIsAuthenticated(true));
+        dispatch(setIsAuthModalOpen(false));
+        toast.success("Login Success");
+      } else {
+        toast.error("Login failed! Try again");
+      }
+    } catch (error) {
+      console.error("Error Submitting otp: ", error)
+      toast.error("something went wrong");
+    } finally {
+      setShowOtp(false);
+    }
+  }
+
+  // disable background scroll on OPEN
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "auto";
-  }, [isOpen]);
+    document.body.style.overflow = isAuthModalOpen ? "hidden" : "auto";
+  }, [isAuthModalOpen]);
 
-  if (!isOpen) return null;
+  // close modal when logged in
+  useEffect(() => {
+    if (!isAuthenticated) dispatch(setIsAuthModalOpen(true));
+    // else dispatch(setIsAuthModalOpen(true))
+  }, [isAuthenticated, dispatch]);
+
+
+  if (!isAuthModalOpen) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center animate-fadeIn">
@@ -36,14 +232,30 @@ const AuthModal = ({ isOpen, onClose }) => {
         </ul>
 
         {/* Email Input */}
-        <label className="text-sm text-gray-700 font-medium">Email Address*</label>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black outline-none mt-1"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div>
+          <label className="text-sm text-gray-700 font-medium">Email Address*</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black outline-none mt-1"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+        </div>
+        {/* Otp Input */}
+        {showOtp && <div className="mt-2">
+          <label className="text-sm text-gray-700 font-medium">Otp*</label>
+          <input
+            type="email"
+            placeholder="Enter Otp"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black outline-none mt-1"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+          <p className="text-xs text-gray-400 hover:text-blue-400 mt-2 "><button className="cursor-pointer" onClick={() => handleSendOtp()}>Resend</button></p>
+        </div>}
+
 
         <p className="text-xs text-gray-500 mt-2">
           By continuing, I agree to the
@@ -53,11 +265,12 @@ const AuthModal = ({ isOpen, onClose }) => {
         </p>
 
         {/* Button */}
-        <button
+        {showOtp ? <button onClick={handleSubmitOtp} className="w-full mt-6 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-900 transition">Continue</button> : <button
+          onClick={() => handleSendOtp()}
           className="w-full mt-6 py-3 bg-black text-white rounded-full font-semibold hover:bg-gray-900 transition"
         >
           Continue
-        </button>
+        </button>}
 
         {/* Divider */}
         <div className="my-5 flex items-center gap-3">

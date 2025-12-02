@@ -7,7 +7,7 @@ function NewArrivals() {
   const getNewArrivals = async () => {
     try {
       const res = await api.get("products/newArrivals");
-      // console.log("new arrivals", res);
+      console.log("new arrivals", res.data);
       setNewArrivals(res.data.data);
     } catch (error) {
       console.error("error fetching new arrivals", error);
@@ -23,7 +23,7 @@ function NewArrivals() {
       <div className="grid grid-cols-12 m-0 md:mx-20 ">
         {newArrivals && newArrivals.map((item, i) => (
           <div key={i} className="col-span-6 md:col-span-3 bg-white rounded-2xl cursor-pointer p-2 group">
-            <Link to={`/product/${item._id}`}>
+            <Link to={`/products/${item._id}`}>
               <img
                 className="aspect-[14/16] object-cover rounded-2xl w-full group-hover:scale-105 duration-150"
                 src={item.thumbnail.url}

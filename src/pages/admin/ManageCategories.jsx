@@ -47,6 +47,7 @@ function ManageCategories() {
     formData.append("name", values.name);
     formData.append("description", values.description);
     formData.append("parent", values.parent || "");
+    formData.append("slug", values.slug);
 
     // Append single image if it exists
     if (values.image) {
@@ -64,6 +65,7 @@ function ManageCategories() {
       reset({
         name: "",
         parent: "",
+        slug: "",
         description: "",
         image: null
       });
@@ -115,6 +117,7 @@ function ManageCategories() {
           id: category._id || "",
           name: category.name || "",
           description: category.description || "",
+          slug: category.slug,
           parent: parentCategory ? parentCategory._id : null,
           image: category.image?.url || ""
         });
@@ -133,6 +136,7 @@ function ManageCategories() {
     formData.append("name", values.name);
     formData.append("description", values.description);
     formData.append("parent", values.parent || "");
+    formData.append("slug", values.slug);
 
     // Append single image if it exists
     if (typeof values.image === "object") {
@@ -146,7 +150,8 @@ function ManageCategories() {
         render: response.data.message,
         type: "success",
         isLoading: false,
-        autoClose: 3000
+        autoClose: 3000,
+        closeButton:true
       });
       revalidator.revalidate();
     } catch (error) {
@@ -155,7 +160,8 @@ function ManageCategories() {
         render: "something went wrong",
         type: "error",
         isLoading: false,
-        autoClose: 3000
+        autoClose: 3000,
+        closeButton:true
       });
     }
   };
@@ -188,7 +194,7 @@ function ManageCategories() {
             <Table className="text-gray-600 w-full">
               <TableHeader className="bg-admin-500 dark:bg-admin-dark-700 border-b border-b order border-gray-200 dark:border-gray-500">
                 <TableRow>
-                  {["Sr. No", "Image", "Category Name", "Parent Category", "Description", "Action"].map(
+                  {["Sr. No", "Image", "Category Name", "Parent Category", "Slug", "Description", "Action"].map(
                     (heading) => (
                       <TableCell
                         key={heading}
@@ -220,6 +226,9 @@ function ManageCategories() {
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm ">
                       {loaderData.data.find(cat => cat._id === item.parent)?.name || "—"}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm ">
+                      {item.slug}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm ">
                       {item.description}
@@ -317,6 +326,25 @@ function ManageCategories() {
                       value={field.value}
                     />
 
+                  )}
+                />
+              </div>
+              {/* Slug */}
+              <div className="col-span-12 md:col-span-6">
+                <Label>
+                  Slug <span className="text-red-400">*</span>
+                </Label>
+                <Controller
+                  name="slug"
+                  control={control}
+                  rules={{ required: "Slug is required." }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      placeholder="Enter Slug (do not use space)"
+                      error={!!fieldState.error}
+                      hint={fieldState.error?.message}
+                    />
                   )}
                 />
               </div>
@@ -425,6 +453,26 @@ function ManageCategories() {
                       value={field.value}
                     />
 
+                  )}
+                />
+              </div>
+
+              {/* Slug */}
+              <div className="col-span-12 md:col-span-6">
+                <Label>
+                  Slug <span className="text-red-400">*</span>
+                </Label>
+                <Controller
+                  name="slug"
+                  control={control}
+                  rules={{ required: "Slug is required." }}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      {...field}
+                      placeholder="Enter Slug"
+                      error={!!fieldState.error}
+                      hint={fieldState.error?.message}
+                    />
                   )}
                 />
               </div>

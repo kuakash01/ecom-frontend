@@ -1,4 +1,4 @@
-import { useEffect, Suspense, useState } from "react";
+import { useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RouterProvider } from "react-router-dom";
 import { setMobileOpen } from "./redux/themeSlice";
@@ -12,14 +12,13 @@ import { history } from "./utils/navigateHelper";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import AuthModal from "./components/user/Auth/AuthModal"
 
 
 
 function App() {
   const dispatch = useDispatch();
 
-  const [openModal, setOpenModal] = useState(true);
+
 
 
   useEffect(() => {
@@ -33,10 +32,7 @@ function App() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <AuthModal
-        isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-      />
+      
       <ToastContainer position="top-right" autoClose={3000} />
       <RouterProvider router={router} history={history} />
     </Suspense>

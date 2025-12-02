@@ -28,11 +28,13 @@ function Navbar({ categories, onSelect, onHover, }) {
             key={cat._id}
             onMouseEnter={() => onHover(cat)}
 
-            onClick={() => onSelect(cat)}
+            onClick={() => onSelect(null)}
             className="cursor-pointer font-medium text-gray-700 dark:text-white hover:text-blue-600 
         transition-colors py-6"
           >
-            {cat.name}
+            <Link to={`/${cat.slug}`}>
+              {cat.name}
+            </Link>
           </li>
         ))}
       </ul>
@@ -41,7 +43,7 @@ function Navbar({ categories, onSelect, onHover, }) {
 }
 
 
-function MegaPanel({ category }) {
+function MegaPanel({ category, onSelect }) {
   if (!category) return null;
 
   return (
@@ -56,8 +58,10 @@ function MegaPanel({ category }) {
     ">
       {category.children?.map(child => (
         <div key={child._id} className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-800 tracking-wide cursor-pointer">
-            {child.name}
+          <h3  className="text-sm font-semibold text-gray-800 tracking-wide cursor-pointer">
+            <Link onClick={() => onSelect(null)} to={`/${child.slug}`}>
+              {child.name}
+            </Link>
           </h3>
 
           <ul className="space-y-2">
@@ -66,7 +70,9 @@ function MegaPanel({ category }) {
                 key={sub._id}
                 className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer transition-colors"
               >
-                {sub.name}
+                <Link onClick={() => onSelect(null)} to={`/${sub.slug}`}>
+                  {sub.name}
+                </Link>
               </li>
             ))}
           </ul>
@@ -105,7 +111,7 @@ function NavContainer({ categories }) {
         onHover={setSelected} // open on hover
       />
 
-      <MegaPanel category={selected} />
+      <MegaPanel category={selected} onSelect={setSelected} />
     </div>
   );
 }
@@ -136,13 +142,24 @@ const HeaderLayout = () => {
 
       <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
         {isMobileOpen && (
-          <button
-            className="cursor-pointer"
-            type="button"
-            onClick={() => dispatch(toggleSidebar())}
-          >
-            menu
-          </button>
+          <div className="flex">
+            <button
+              className="cursor-pointer"
+              type="button"
+              onClick={() => dispatch(toggleSidebar())}
+            >
+              menu
+            </button>
+            <Link to="/">
+              <div className="flex items-center">
+                <img
+                  className="w-[50px] max-w-full  rounded-lg  object-contain"
+                  src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
+                  alt="logo"
+                />
+              </div>
+            </Link>
+          </div>
         )}
         {!isMobileOpen && (
           <NavContainer categories={categoryTree} />

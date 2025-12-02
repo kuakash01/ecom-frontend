@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from "../../../config/axios";
+import { Link } from "react-router-dom"
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -38,32 +39,33 @@ function Categories() {
               transition-all
             "
           >
+            <Link to={`/${cat.slug}`}>
 
-            {/* MOBILE STYLE */}
-            <img
-              src={cat.image.url}
-              alt={cat.name}
-              className="
+              {/* MOBILE STYLE */}
+              <img
+                src={cat.image.url}
+                alt={cat.name}
+                className="
                 w-full 
                 h-40 sm:h-64 
                 object-cover 
                 transition-transform duration-500 
                 group-hover:scale-105 sm:group-hover:scale-110
               "
-            />
+              />
 
-            {/* MOBILE: Solid bar; DESKTOP: Gradient */}
-            <div className="
+              {/* MOBILE: Solid bar; DESKTOP: Gradient */}
+              <div className="
               absolute bottom-0 w-full
               bg-gradient-to-t from-black via-transparent to-transparent p-4 text-white
               p-2 sm:p-4 
               text-white text-center
             ">
-              <h3 className="text-sm sm:text-lg font-medium sm:font-semibold">
-                {cat.name}
-              </h3>
-            </div>
-
+                <h3 className="text-sm sm:text-lg font-medium sm:font-semibold">
+                  {cat.name}
+                </h3>
+              </div>
+            </Link>
           </div>
         ))}
       </div>

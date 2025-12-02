@@ -6,7 +6,7 @@ import { setLoading } from '../../redux/themeSlice';
 const ProductsLoader = async()=>{
     try {
         store.dispatch(setLoading(true));
-        const response = await api.get(`/products`);
+        const response = await api.get(`/admin/products`);
         console.log("Products fetched successfully:", response.data);
         return response.data;
     } catch (error) {

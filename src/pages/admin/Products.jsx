@@ -160,7 +160,7 @@ function Products() {
                     "Title",
                     "New Arrival",
                     "Thumbnail",
-                    "Category",
+                    "Category slug",
                     "Variations",
                     "Action",
                   ].map((heading) => (
@@ -224,7 +224,7 @@ function Products() {
                       )}
                     </TableCell> */}
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      <div>{item.title}</div>
+                      <div>{item.category.slug}</div>
                     </TableCell>
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       <div className="hover:text-blue-500 cursor-pointer" onClick={() => handleOpenVariants(item._id)}>View</div>
