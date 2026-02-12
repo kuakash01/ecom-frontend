@@ -8,7 +8,7 @@ import { useDispatch} from "react-redux";
 import { Link } from "react-router-dom";
 
 
-function UserDropdown({userData}) {
+function UserDropdown({profilePicture}) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
@@ -34,7 +34,6 @@ function UserDropdown({userData}) {
         }
     }
     useEffect(() => {
-        console.log("profile picture in dropdown", userData);
 
 
         const handleClickOutside = (event) => {
@@ -53,7 +52,7 @@ function UserDropdown({userData}) {
             <button type="button" ref={dropdownRef} className="cursor-pointer " onClick={handleToggle}>
                 <div className="flex gap-2 items-center">
                     <div className="w-10 h-10 rounded-full">
-                    <img src={userData?.profilePicture} alt="pro" className="w-full h-full object-cover rounded-full" />
+                    <img src={profilePicture} alt="pro" className="w-full h-full object-cover rounded-full" />
                     </div>
 
                     {/* <div>

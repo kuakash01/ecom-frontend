@@ -122,7 +122,7 @@ const HeaderLayout = () => {
   const dispatch = useDispatch();
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen); // Get the sidebar state from Redux store
   const [categoryTree, setCategoryTree] = useState([]);
-  const userDetails = useSelector((state) => state.user.userDetails);
+  const userData = useSelector((state) => state.user.userData);
 
   const getCategoryTree = async () => {
     try {
@@ -134,9 +134,6 @@ const HeaderLayout = () => {
       toast.error("Error Fetching Categories");
     }
   }
-  useEffect(() => {
-    console.log("profile picture", userDetails);
-  }, [])
 
 useEffect(() => {
   getCategoryTree();
@@ -175,7 +172,7 @@ return (
 
             <CartIcon className="text-2xl" />
 
-            {userDetails?.cartCount > 0 && (
+            {userData?.cartCount > 0 && (
 
               <span
                 className="
@@ -195,7 +192,7 @@ return (
         px-1
       "
               >
-                {userDetails?.cartCount}
+                {userData?.cartCount}
               </span>
 
             )}
@@ -208,7 +205,7 @@ return (
             <ThemeToggle />
           </div> */}
         <div className="">
-          <UserDropdown userData={userDetails?.userData} />
+          <UserDropdown profilePicture={userData?.profilePicture} />
         </div>
       </div>
     </nav>

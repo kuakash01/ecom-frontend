@@ -5,7 +5,7 @@ import SidebarLayout from "./SidebarLayout";
 import { useSelector, useDispatch } from "react-redux";
 import FooterLayout from "./FooterLayout";
 import AuthModal from "../../components/user/Auth/AuthModal";
-import { setIsAuthModalOpen, setIsAuthenticated, setUser } from "../../redux/userSlice";
+import { setIsAuthModalOpen, setIsAuthenticated, setUserData } from "../../redux/userSlice";
 import { checkAuthUser } from "../../services/authService";
 import api from "../../config/axios";
 
@@ -23,11 +23,10 @@ function AppLayout() {
   const verifyUser = async () => {
     setLoading(true);
     const data = await checkAuthUser();
-    console.log("Auth check user", data);
+    // console.log("Auth check user", data);
     if (data && data.isAuthenticated) {
       dispatch(setIsAuthenticated(true));
-      dispatch(setUser(data));
-
+      dispatch(setUserData(data.userData));
       // dispatch(setIsAuthModalOpen(open))
     }
     setLoading(false);

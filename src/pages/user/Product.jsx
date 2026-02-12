@@ -6,10 +6,11 @@ import ProductSkeleton from "../../components/user/product/ProductSkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import { useSelector, useDispatch } from "react-redux";
 import { setIsAuthModalOpen } from "../../redux/userSlice";
+import {setUserData} from "../../redux/userSlice";
 
 
 function Product() {
-  const isAuthenticated = useSelector(state => state.user.isAuthenticated);
+  const {isAuthenticated, userData} = useSelector(state => state.user);
 
   const [productDetail, setProductDetail] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -194,9 +195,11 @@ function Product() {
         quantity: 1,
       });
     }
+    let localCartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("cartCount", cart.length);
+    localStorage.setItem("cartCount", localCartCount);
+    dispatch(setUserData({...userData, cartCount: localCartCount}));
   }
 
   // add to cart for login user
