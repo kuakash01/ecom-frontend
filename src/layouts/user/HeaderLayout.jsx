@@ -205,7 +205,7 @@ return (
             <ThemeToggle />
           </div> */}
         <div className="">
-          <UserDropdown profilePicture={userData?.profilePicture} />
+          <UserDropdown userData={userData} />
         </div>
       </div>
     </nav>
