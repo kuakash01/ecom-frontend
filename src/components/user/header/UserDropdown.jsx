@@ -4,12 +4,16 @@ import { signout } from "../../../services/authService";
 import React from 'react'
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../../redux/adminSlice";
-import { useDispatch } from "react-redux";
-function UserDropdown() {
+import { useDispatch} from "react-redux";
+import { Link } from "react-router-dom";
+
+
+function UserDropdown({userData}) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const handleToggle = () => {
         setIsOpen(prev => !prev);
     };
@@ -22,7 +26,7 @@ function UserDropdown() {
             const response = await signout();
             if (response.type === "signout") {
                 dispatch(logout());
-                navigate("/admin/signin"); 
+                navigate("/admin/signin");
             }
 
         } catch (error) {
@@ -30,6 +34,7 @@ function UserDropdown() {
         }
     }
     useEffect(() => {
+        console.log("profile picture in dropdown", userData);
 
 
         const handleClickOutside = (event) => {
@@ -47,8 +52,8 @@ function UserDropdown() {
         <div>
             <button type="button" ref={dropdownRef} className="cursor-pointer " onClick={handleToggle}>
                 <div className="flex gap-2 items-center">
-                    <div className="w-10 h-10 rounded-full bg-gray-300">
-                        pro
+                    <div className="w-10 h-10 rounded-full">
+                    <img src={userData?.profilePicture} alt="pro" className="w-full h-full object-cover rounded-full" />
                     </div>
 
                     {/* <div>
@@ -59,8 +64,8 @@ function UserDropdown() {
             {isOpen && (
                 <div className="absolute right-2 top-20  shadow-lg rounded-md   w-48 bg-admin-light-500 dark:bg-admin-dark-800 text-black dark:text-white">
                     <ul className="py-2">
-                        <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Profile</li>
-                        <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Settings</li>
+                        <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer"><Link to="/profile">My Account</Link></li>
+                        {/* <li onClick={handleClose} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Settings</li> */}
                         <li onClick={handleLogout} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Logout</li>
                     </ul>
                 </div>

@@ -30,7 +30,7 @@ export const checkAuthUser = async () => {
             }
         }); // or /api/auth/me depending on your backend route
         // console.log("User data:", res.data);
-        return res.data.user;
+        return res.data.data;
     } catch (err) {
         return null;
     }

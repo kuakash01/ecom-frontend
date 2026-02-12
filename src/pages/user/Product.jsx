@@ -1,10 +1,12 @@
 import Badge from "../../components/common/ui/badge/Badge";
-import { useSearchParams, useParams } from "react-router-dom";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "../../config/axios";
 import ProductSkeleton from "../../components/user/product/ProductSkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setIsAuthModalOpen } from "../../redux/userSlice";
+
 
 function Product() {
   const isAuthenticated = useSelector(state => state.user.isAuthenticated);
@@ -21,6 +23,9 @@ function Product() {
   const [mainImage, setMainImage] = useState("");
   const [currentVariant, setCurrentVariant] = useState(null);
   const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleColorChange = (colorName) => {
     setSearchParams({ color: colorName });
@@ -217,6 +222,27 @@ function Product() {
     else addItemToCartGuest();
   }
 
+
+  // buy now functionality
+  const handleBuyNow = () => {
+    if (isAuthenticated) {
+      const data = {
+        productId,
+        variantId: currentVariant._id,
+        quantity: 1
+      };
+
+      // Save backup
+      sessionStorage.setItem("checkout_buy_now", JSON.stringify(data));
+
+      // Navigate
+      navigate("/checkout?type=BUY_NOW", { state: data });
+    }
+    else {
+      dispatch(setIsAuthModalOpen(true));
+    }
+  }
+
   // scroll to top when render page
   useScrollToTop();
 
@@ -381,7 +407,7 @@ function Product() {
               {currentVariant ? (
                 currentVariant.quantity > 0 ? (
                   <>
-                    <button className="flex-1 py-3 bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
+                    <button onClick={handleBuyNow} className="flex-1 py-3 bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
                       Buy Now
                     </button>
                     <button onClick={handleAddToCart} className="flex-1 py-3 bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">

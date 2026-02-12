@@ -58,7 +58,7 @@ function MegaPanel({ category, onSelect }) {
     ">
       {category.children?.map(child => (
         <div key={child._id} className="space-y-3">
-          <h3  className="text-sm font-semibold text-gray-800 tracking-wide cursor-pointer">
+          <h3 className="text-sm font-semibold text-gray-800 tracking-wide cursor-pointer">
             <Link onClick={() => onSelect(null)} to={`/${child.slug}`}>
               {child.name}
             </Link>
@@ -122,6 +122,7 @@ const HeaderLayout = () => {
   const dispatch = useDispatch();
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen); // Get the sidebar state from Redux store
   const [categoryTree, setCategoryTree] = useState([]);
+  const userDetails = useSelector((state) => state.user.userDetails);
 
   const getCategoryTree = async () => {
     try {
@@ -133,51 +134,86 @@ const HeaderLayout = () => {
       toast.error("Error Fetching Categories");
     }
   }
-
   useEffect(() => {
-    getCategoryTree();
-  }, []);
-  return (
-    <>
+    console.log("profile picture", userDetails);
+  }, [])
 
-      <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
-        {isMobileOpen && (
-          <div className="flex">
-            <button
-              className="cursor-pointer"
-              type="button"
-              onClick={() => dispatch(toggleSidebar())}
-            >
-              menu
-            </button>
-            <Link to="/">
-              <div className="flex items-center">
-                <img
-                  className="w-[50px] max-w-full  rounded-lg  object-contain"
-                  src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
-                  alt="logo"
-                />
-              </div>
-            </Link>
-          </div>
-        )}
-        {!isMobileOpen && (
-          <NavContainer categories={categoryTree} />
-        )}
-        <div className="flex gap-4 items-center">
-          <Link to="/cart">
-            <CartIcon className="text-2xl" />
+useEffect(() => {
+  getCategoryTree();
+}, []);
+return (
+  <>
+
+    <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
+      {isMobileOpen && (
+        <div className="flex">
+          <button
+            className="cursor-pointer"
+            type="button"
+            onClick={() => dispatch(toggleSidebar())}
+          >
+            menu
+          </button>
+          <Link to="/">
+            <div className="flex items-center">
+              <img
+                className="w-[50px] max-w-full  rounded-lg  object-contain"
+                src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
+                alt="logo"
+              />
+            </div>
           </Link>
-          <div>
-            <ThemeToggle />
-          </div>
-          <div className="">
-            <UserDropdown />
-          </div>
         </div>
-      </nav>
-    </>
-  );
+      )}
+      {!isMobileOpen && (
+        <NavContainer categories={categoryTree} />
+      )}
+      <div className="flex gap-4 items-center">
+        <Link to="/cart">
+          {/* <CartIcon className="text-2xl" /> */}
+          <div className="relative">
+
+            <CartIcon className="text-2xl" />
+
+            {userDetails?.cartCount > 0 && (
+
+              <span
+                className="
+        absolute
+        -top-2
+        -right-2
+        bg-red-500
+        text-white
+        text-[10px]
+        font-semibold
+        rounded-full
+        min-w-[18px]
+        h-[18px]
+        flex
+        items-center
+        justify-center
+        px-1
+      "
+              >
+                {userDetails?.cartCount}
+              </span>
+
+            )}
+
+          </div>
+
+
+        </Link>
+        {/* <div>
+            <ThemeToggle />
+          </div> */}
+        <div className="">
+          <UserDropdown userData={userDetails?.userData} />
+        </div>
+      </div>
+    </nav>
+  </>
+);
 };
 
 export default HeaderLayout;

@@ -7,6 +7,17 @@ import Home from "../pages/user/Home";
 import Product from "../pages/user/Product";
 import Shop from "../pages/user/Shop";
 import Cart from "../pages/user/Cart";
+import Checkout from "../pages/user/Checkout";
+
+// Account related pages
+import AccountLayout from "../layouts/user/AccountLayout";
+import Profile from "../pages/user/Profile";
+import Orders from "../pages/user/Orders";
+import OrderDetails from "../pages/user/OrderDetails";
+import Address from "../pages/user/Address";
+import AddressForm from "../pages/user/AddressForm";
+
+
 
 
 
@@ -39,25 +50,43 @@ const userRoutes = {
       element: <Cart />,
     },
     {
+      path: "checkout",
+      element: <Checkout />,
+    },
+
+    {
       path: "profile",
-      element: <h1>profile</h1>,
+      element: <AccountLayout />,
+      children: [
+        {
+          index: true,
+          element: <Profile />,
+        },
+        {
+          path: "orders",
+          element: <Orders />,
+        },
+        {
+          path: "orders/:orderId",
+          element: <OrderDetails />,
+        },
+        {
+          path: "addresses",
+          element: <Address />,
+        },
+        {
+          path: "addresses/add",
+          element: <AddressForm />,
+        },
+        {
+          path: "addresses/edit/:id",
+          element: <AddressForm />,
+        },
+        
+      ]
     },
-    {
-      path: "settings",
-      element: <h1>settings</h1>,
-    },
-    {
-      path: "users",
-      element: <h1>users</h1>,
-    },
-    {
-      path: "users/:id",
-      element: <h1>user</h1>,
-    },
-    {
-      path: "users/:id/edit",
-      element: <h1>edit user</h1>,
-    },
+
+
   ],
 };
 
