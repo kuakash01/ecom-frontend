@@ -1,5 +1,5 @@
 // import React, { useState, useEffect  } from "react";
-// import api from "../../config/axios"; // Adjust the path as necessary
+// import api from "../../config/apiAdmin"; // Adjust the path as necessary
 // import { useSelector, useDispatch } from "react-redux";
 // import { useNavigate, Navigate } from "react-router-dom";
 // import { login, logout } from "../../redux/adminSlice";
@@ -126,7 +126,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import api from "../../config/axios";
+import api from "../../config/apiAdmin";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Navigate } from "react-router-dom";
 import { login } from "../../redux/adminSlice";

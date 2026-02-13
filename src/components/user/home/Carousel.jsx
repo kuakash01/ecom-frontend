@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import api from "../../../config/axios";
+import api from "../../../config/apiUser";
 import { toast } from "react-toastify";
 
 function Carousel() {

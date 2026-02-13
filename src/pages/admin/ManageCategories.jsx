@@ -18,7 +18,7 @@ import { Trash, Pencil } from "lucide-react";
 import { useLoaderData } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRevalidator } from "react-router-dom";
-import api from "../../config/axios";
+import api from "../../config/apiAdmin";
 
 function ManageCategories() {
   const [addNewCategory, setAddNewCategory] = useState(false);

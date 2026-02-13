@@ -7,7 +7,7 @@ import FooterLayout from "./FooterLayout";
 import AuthModal from "../../components/user/Auth/AuthModal";
 import { setIsAuthModalOpen, setIsAuthenticated, setUserData } from "../../redux/userSlice";
 import { checkAuthUser } from "../../services/authService";
-import api from "../../config/axios";
+import api from "../../config/apiAdmin";
 
 function AppLayout() {
   const isSidebarOpen = useSelector((state) => state.theme.isSidebarOpen);

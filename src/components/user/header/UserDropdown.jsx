@@ -52,7 +52,7 @@ function UserDropdown({userData}) {
             <button type="button" ref={dropdownRef} className="cursor-pointer " onClick={handleToggle}>
                 <div className="flex gap-2 items-center">
                     <div className="w-10 h-10 rounded-full">
-                    <img src={userData?.profilePicture || ""} alt="pro" className="w-full h-full object-cover rounded-full" />
+                    <img src={userData?.profilePicture || null} alt="pro" className="w-full h-full object-cover rounded-full" />
                     </div>
 
                     {/* <div>

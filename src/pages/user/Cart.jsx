@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import { BinIcon, DiscountIcon } from "../../icons";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowDownIcon } from "../../icons";
@@ -136,7 +136,7 @@ function Cart() {
       </div>
 
 
-      <div className="max-w-6xl mx-auto grid grid-cols-12 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-12 gap-4 lg:gap-8">
 
 
         {/* LEFT — CART ITEMS */}

@@ -16,7 +16,7 @@ import {
 import { Trash, Pencil, X, Check } from "lucide-react";
 import { useLoaderData, useRevalidator } from "react-router-dom";
 import { toast } from "react-toastify";
-import api from "../../config/axios";
+import api from "../../config/apiAdmin";
 import SingleImageUpload from "../../components/common/form/SingleImageUpload";
 
 function ManageCarousel() {

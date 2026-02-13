@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { history } from '../utils/navigateHelper'; // Adjust the path as necessary
 
-const axiosInstance = axios.create({
+const apiAdmin = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api` || 'http://localhost:3000/api',
   withCredentials: true,
   timeout: 10000,
@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // );
 
 // Add token to every request automatically
-axiosInstance.interceptors.request.use((config) => {
+apiAdmin.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -24,7 +24,7 @@ axiosInstance.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-axiosInstance.interceptors.response.use(
+apiAdmin.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response && error.response.status === 401) {
@@ -35,4 +35,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance;
+export default apiAdmin;

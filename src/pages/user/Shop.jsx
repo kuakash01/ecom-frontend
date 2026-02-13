@@ -8,7 +8,7 @@ import {
 } from "../../icons";
 import { Range } from "react-range";
 import { useParams } from "react-router-dom";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import { Link } from "react-router-dom";
 import useScrollToTop from "../../hooks/useScrollToTop"
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../../../config/axios";
+import api from "../../../config/apiAdmin";
 import Input from "../../common/form/input/InputField";
 import Form from "../../common/form/Form";
 import Label from "../../common/form/Label";

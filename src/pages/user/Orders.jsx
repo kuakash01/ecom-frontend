@@ -1,7 +1,7 @@
 // import { Link } from "react-router-dom";
 // import { useState, useEffect } from "react";
 // import { useSelector } from "react-redux";
-// import api from "../../config/axios";
+// import api from "../../config/apiAdmin";
 
 
 
@@ -107,7 +107,7 @@
 
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 
 const Orders = () => {
 

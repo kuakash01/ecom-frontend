@@ -1,4 +1,4 @@
-import api from '../../config/axios'; // Import your axios instance
+import api from '../../config/apiAdmin'; // Import your axios instance
 import store from '../../redux/store';
 import { setLoading } from '../../redux/themeSlice';
 

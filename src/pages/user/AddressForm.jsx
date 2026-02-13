@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import { toast } from "react-toastify";
 
 const AddressForm = () => {

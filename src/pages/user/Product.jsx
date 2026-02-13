@@ -1,7 +1,7 @@
 import Badge from "../../components/common/ui/badge/Badge";
 import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import ProductSkeleton from "../../components/user/product/ProductSkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import { useSelector, useDispatch } from "react-redux";
@@ -410,10 +410,10 @@ function Product() {
               {currentVariant ? (
                 currentVariant.quantity > 0 ? (
                   <>
-                    <button onClick={handleBuyNow} className="flex-1 py-3 bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
+                    <button onClick={handleBuyNow} className="flex-1 py-3 w-full bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
                       Buy Now
                     </button>
-                    <button onClick={handleAddToCart} className="flex-1 py-3 bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">
+                    <button onClick={handleAddToCart} className="flex-1 py-3 w-full bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">
                       Add to Cart
                     </button>
                   </>
@@ -464,7 +464,7 @@ export default Product;
 // import { useLoaderData, useSearchParams, useParams } from "react-router-dom";
 // import { useState, useEffect, useRef } from "react";
 // import { ChevronUp, ChevronDown } from "lucide-react";
-// import api from "../../config/axios";
+// import api from "../../config/apiAdmin";
 // import NewArrivals from "../../components/user/product/NewArrivals";
 // import useScrollToTop from "../../hooks/useScrollToTop";
 

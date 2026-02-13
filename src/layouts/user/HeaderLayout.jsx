@@ -3,7 +3,8 @@ import ThemeToggle from "../../components/common/ThemeToggle";
 import UserDropdown from "../../components/user/header/UserDropdown";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleSidebar } from "../../redux/themeSlice"; // Import the action to toggle sidebar
-import api from "../../config/axios";
+import { setIsAuthModalOpen } from "../../redux/userSlice";
+import api from "../../config/apiUser";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { CartIcon } from "../../icons"
@@ -120,9 +121,9 @@ function NavContainer({ categories }) {
 
 const HeaderLayout = () => {
   const dispatch = useDispatch();
-  const isMobileOpen = useSelector((state) => state.theme.isMobileOpen); // Get the sidebar state from Redux store
+  const isMobileOpen = useSelector((state) => state.theme.isMobileOpen);
   const [categoryTree, setCategoryTree] = useState([]);
-  const userData = useSelector((state) => state.user.userData);
+  const { userData, isAuthenticated } = useSelector((state) => state.user);
 
   const getCategoryTree = async () => {
     try {
@@ -135,47 +136,47 @@ const HeaderLayout = () => {
     }
   }
 
-useEffect(() => {
-  getCategoryTree();
-}, []);
-return (
-  <>
+  useEffect(() => {
+    getCategoryTree();
+  }, []);
+  return (
+    <>
 
-    <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
-      {isMobileOpen && (
-        <div className="flex">
-          <button
-            className="cursor-pointer"
-            type="button"
-            onClick={() => dispatch(toggleSidebar())}
-          >
-            menu
-          </button>
-          <Link to="/">
-            <div className="flex items-center">
-              <img
-                className="w-[50px] max-w-full  rounded-lg  object-contain"
-                src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
-                alt="logo"
-              />
-            </div>
-          </Link>
-        </div>
-      )}
-      {!isMobileOpen && (
-        <NavContainer categories={categoryTree} />
-      )}
-      <div className="flex gap-4 items-center">
-        <Link to="/cart">
-          {/* <CartIcon className="text-2xl" /> */}
-          <div className="relative">
+      <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
+        {isMobileOpen && (
+          <div className="flex">
+            <button
+              className="cursor-pointer"
+              type="button"
+              onClick={() => dispatch(toggleSidebar())}
+            >
+              menu
+            </button>
+            <Link to="/">
+              <div className="flex items-center">
+                <img
+                  className="w-[50px] max-w-full  rounded-lg  object-contain"
+                  src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg"
+                  alt="logo"
+                />
+              </div>
+            </Link>
+          </div>
+        )}
+        {!isMobileOpen && (
+          <NavContainer categories={categoryTree} />
+        )}
+        <div className="flex gap-4 items-center">
+          <Link to="/cart">
+            {/* <CartIcon className="text-2xl" /> */}
+            <div className="relative">
 
-            <CartIcon className="text-2xl" />
+              <CartIcon className="text-2xl" />
 
-            {userData?.cartCount > 0 && (
+              {userData?.cartCount > 0 && (
 
-              <span
-                className="
+                <span
+                  className="
         absolute
         -top-2
         -right-2
@@ -191,26 +192,43 @@ return (
         justify-center
         px-1
       "
-              >
-                {userData?.cartCount}
-              </span>
+                >
+                  {userData?.cartCount}
+                </span>
 
-            )}
+              )}
 
-          </div>
+            </div>
 
 
-        </Link>
-        {/* <div>
+          </Link>
+          {/* <div>
             <ThemeToggle />
           </div> */}
-        <div className="">
-          <UserDropdown userData={userData} />
+          <div className="">
+            {isAuthenticated ? (<UserDropdown userData={userData} />) : (
+              <button
+                onClick={() => dispatch(setIsAuthModalOpen(true))}
+                className="
+    px-4 py-2
+    rounded-lg
+    border border-indigo-600
+    text-indigo-600
+    text-sm font-medium
+    hover:bg-indigo-50
+    transition-all duration-200
+    mr-2
+  "
+              >
+                Sign In
+              </button>
+
+            )}
+          </div>
         </div>
-      </div>
-    </nav>
-  </>
-);
+      </nav>
+    </>
+  );
 };
 
 export default HeaderLayout;

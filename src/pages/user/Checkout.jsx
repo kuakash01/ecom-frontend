@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import AddCheckoutAddress from "../../components/user/AddressModel/AddCheckoutAddress";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowDownIcon, BinIcon, DiscountIcon } from "../../icons";
@@ -462,7 +462,7 @@ const Checkout = () => {
     </div>
 
 
-    <div className="max-w-6xl mx-auto grid grid-cols-12 gap-8">
+    <div className="max-w-6xl mx-auto grid grid-cols-12 gap-4 lg:gap-8">
 
       {/* LEFT */}
       <div className="col-span-12 lg:col-span-8 space-y-6">

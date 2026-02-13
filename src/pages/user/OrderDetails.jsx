@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import api from "../../config/axios";
+import api from "../../config/apiUser";
 import { ArrowPrevIcon } from "../../icons";
 
 /* ================= MAIN ================= */

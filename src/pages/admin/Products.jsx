@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLoaderData, useRevalidator } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form"
-import api from "../../config/axios"; // Import your axios instance
+import api from "../../config/apiAdmin"; // Import your axios instance
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux"
 import { setLoading } from "../../redux/themeSlice"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../../config/axios";
+import api from "../../../config/apiUser";
 import { Link } from "react-router-dom";
 
 function NewArrivals() {

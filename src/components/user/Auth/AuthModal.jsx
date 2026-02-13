@@ -144,7 +144,7 @@
 
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
-import api from "../../../config/axios";
+import api from "../../../config/apiAdmin";
 import { setIsAuthModalOpen, setIsAuthenticated } from "../../../redux/userSlice";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";

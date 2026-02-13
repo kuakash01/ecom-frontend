@@ -13,7 +13,7 @@ import {
 } from "../../components/common/ui/table";
 import { Trash, Pencil } from "lucide-react";
 import { useLoaderData, useRevalidator } from "react-router-dom";
-import api from "../../config/axios";
+import api from "../../config/apiAdmin";
 
 function ManageSizes() {
     const [openForm, setOpenForm] = useState(false);
