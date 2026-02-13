@@ -41,7 +41,6 @@ function AppLayout() {
         });
         console.log("cart sync response", res.data);
         localStorage.removeItem("cart");
-        localSTorage.removeItem("cartCount");
       }
     } catch (error) {
       console.error("Error sync in local cart", error);

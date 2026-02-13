@@ -198,7 +198,6 @@ function Product() {
     let localCartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("cartCount", localCartCount);
     dispatch(setUserData({...userData, cartCount: localCartCount}));
   }
 
