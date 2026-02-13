@@ -4,7 +4,7 @@ import MultipleImageUpload from "../../common/form/MultipleImageUpload";
 import Input from "../../common/form/input/InputField";
 import Label from "../../common/form/Label";
 import { Check } from "lucide-react";
-import api from "../../../config/axios";
+import api from "../../../config/apiAdmin";
 import { toast } from "react-toastify";
 
 const ProductVariationsView = ({ productId, setMode, productVariations, colorGalleries }) => {

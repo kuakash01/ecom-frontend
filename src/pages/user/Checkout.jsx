@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../../config/apiUser";
-import AddCheckoutAddress from "../../components/user/AddressModel/AddCheckoutAddress";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowDownIcon, BinIcon, DiscountIcon } from "../../icons";
 

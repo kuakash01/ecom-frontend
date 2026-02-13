@@ -12,7 +12,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { useRevalidator } from "react-router-dom";
-import api from '../../../config/axios';
+import api from '../../../config/apiAdmin';
 import { useDispatch } from 'react-redux';
 import { setLoading } from '../../../redux/themeSlice';
 

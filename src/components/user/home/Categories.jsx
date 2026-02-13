@@ -57,9 +57,9 @@ function Categories() {
               {/* MOBILE: Solid bar; DESKTOP: Gradient */}
               <div className="
               absolute bottom-0 w-full
-              bg-gradient-to-t from-black via-transparent to-transparent p-4 text-white
+              bg-gradient-to-t from-black via-transparent to-transparent  text-white
               p-2 sm:p-4 
-              text-white text-center
+              text-center
             ">
                 <h3 className="text-sm sm:text-lg font-medium sm:font-semibold">
                   {cat.name}

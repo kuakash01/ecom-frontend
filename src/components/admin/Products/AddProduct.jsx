@@ -11,7 +11,7 @@ import { useForm, Controller } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import api from '../../../config/axios';
+import api from '../../../config/apiAdmin';
 import VariationsSection from "./VariationsSection";
 
 const AddProducts = ({ setMode, revalidator }) => {
