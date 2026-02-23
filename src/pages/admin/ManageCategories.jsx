@@ -192,7 +192,7 @@ function ManageCategories() {
           {/* Table */}
           <div className="bg-white dark:bg-admin-dark-500 shadow-md rounded-xl border border-gray-200 dark:border-gray-500 overflow-auto mt-4">
             <Table className="text-gray-600 w-full">
-              <TableHeader className="bg-admin-500 dark:bg-admin-dark-700 border-b border-b order border-gray-200 dark:border-gray-500">
+              <TableHeader className="bg-admin-500 dark:bg-admin-dark-700  border-b order border-gray-200 dark:border-gray-500">
                 <TableRow>
                   {["Sr. No", "Image", "Category Name", "Parent Category", "Slug", "Description", "Action"].map(
                     (heading) => (

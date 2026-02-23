@@ -6,6 +6,8 @@ import { ArrowDownIcon } from "../../icons";
 import { setIsAuthModalOpen } from "../../redux/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { setUserData } from "../../redux/userSlice";
+import CartSkeleton from "../../components/user/loadingSkeleton/CartSkeleton";
+
 
 function Cart() {
   const { isAuthenticated, userData } = useSelector(state => state.user);
@@ -14,37 +16,54 @@ function Cart() {
   const [cartUpdated, setCartUpdated] = useState("")
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   const getCartGuest = async () => {
-    const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-    if (localCart.length === 0) {
-      setCartData([]);
-      return
-    }
-    console.log("local cart", localCart);
-    let localCartCount = localCart.reduce((total, item) => total + item.quantity, 0);
-    dispatch(setUserData({ ...userData, cartCount: localCartCount }));
     try {
+      setLoading(true);
+
+      const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      if (localCart.length === 0) {
+        setCartData([]);
+        setLoading(false);
+        return;
+      }
+
+      let localCartCount = localCart.reduce(
+        (total, item) => total + item.quantity,
+        0
+      );
+
+      dispatch(setUserData({ ...userData, cartCount: localCartCount }));
+
       const res = await api.post("/cart/guest", { items: localCart });
+
       setCartData(res.data.data.cart);
       setCartSummary(res.data.data.cartSummary);
-      console.log("guest cart details ", res.data.data);
+
     } catch (error) {
-      console.error("Error fething guest cart", error);
+      console.error("Error fetching guest cart", error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const getCartUser = async () => {
     try {
+      setLoading(true);
+
       const res = await api.get("/cart");
+
       setCartData(res.data.data.cart);
       setCartSummary(res.data.data.cartSummary);
-      console.log("user cart details ", res.data.data);
 
     } catch (error) {
-      console.error("Error fething user cart", error);
+      console.error("Error fetching user cart", error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const handleUpdateQuantityLocal = (productId, variantId, type) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -119,6 +138,11 @@ function Cart() {
       getCartGuest();
     }
   }, [isAuthenticated, cartUpdated])
+
+
+  if (loading) {
+    return <CartSkeleton />;
+  }
 
 
   return (

@@ -6,6 +6,7 @@ import { useParams, Link, useSearchParams } from "react-router-dom";
 import api from "../../config/apiUser";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import ProductCard from "../../components/user/product/ProductCard";
+import ShopSkeleton from "../../components/user/loadingSkeleton/ShopSkeleton";
 
 function Shop() {
 
@@ -26,6 +27,7 @@ function Shop() {
   const [params, setParams] = useSearchParams();
 
   const { slug } = useParams();
+  const [loading, setLoading] = useState(true);
 
 
   /* Filters */
@@ -207,7 +209,7 @@ function Shop() {
   const getFilters = async () => {
 
     try {
-
+      setLoading(true);
       const res = await api.get(`/products/${slug}/filters`);
 
       setFilters(res.data.filters);
@@ -228,7 +230,7 @@ function Shop() {
   const getProducts = async () => {
 
     try {
-
+      setLoading(true);
       const query = Object.fromEntries([...params]);
 
       const res = await api.get(
@@ -240,6 +242,8 @@ function Shop() {
 
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -265,6 +269,10 @@ function Shop() {
     (style ? 1 : 0);
 
 
+
+  if (loading || !filters) {
+    return <ShopSkeleton />;
+  }
 
   /* ======================================================= */
 

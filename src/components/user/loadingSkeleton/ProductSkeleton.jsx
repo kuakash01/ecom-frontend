@@ -1,73 +1,146 @@
 const Skeleton = ({ className }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  <div
+    className={`
+      animate-pulse
+      bg-gray-200
+      rounded
+      ${className}
+    `}
+  />
 );
 
 function ProductSkeleton() {
   return (
-    <div className="py-2 px-2 lg:px-10 animate-pulse">
-      <div className="grid grid-cols-12 gap-4">
-        
-        {/* Left: Image Section */}
-        <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-3">
-          
-          {/* Gallery Thumbnails */}
-          <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 overflow-hidden">
-            {[...Array(5)].map((_, idx) => (
-              <Skeleton key={idx} className="min-w-24 md:min-w-full h-24 rounded-2xl" />
-            ))}
+    <div className="w-full bg-white py-8 overflow-x-hidden">
+
+      <div className="max-w-[1400px] mx-auto px-4">
+
+        <div className="grid grid-cols-12 gap-4 lg:gap-10">
+
+
+          {/* ================= IMAGES ================= */}
+          <div className="col-span-12 lg:col-span-7">
+
+
+            {/* Mobile Slider Skeleton */}
+            <div className="lg:hidden">
+
+              <div className="flex overflow-x-hidden">
+
+                <Skeleton className="w-full aspect-square rounded-xl" />
+
+              </div>
+
+              {/* Dots */}
+              <div className="flex justify-center gap-2 mt-3">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="w-2 h-2 rounded-full"
+                  />
+                ))}
+              </div>
+
+            </div>
+
+
+            {/* Desktop Grid Skeleton */}
+            <div className="hidden lg:grid grid-cols-2 gap-5">
+
+              {[...Array(4)].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="w-full aspect-square rounded-xl"
+                />
+              ))}
+
+            </div>
+
           </div>
 
-          {/* Main Image */}
-          <div className="col-span-12 lg:col-span-9">
-            <Skeleton className="w-full h-[400px] rounded-2xl" />
+
+
+          {/* ================= INFO ================= */}
+          <div className="col-span-12 lg:col-span-5 space-y-8">
+
+
+            {/* Title */}
+            <Skeleton className="h-8 w-4/5" />
+
+
+            {/* Price */}
+            <div className="flex gap-4 items-center">
+              <Skeleton className="h-7 w-28" />
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-14" />
+            </div>
+
+
+            {/* Divider */}
+            <Skeleton className="h-px w-full" />
+
+
+            {/* Colors */}
+            <div className="space-y-3">
+
+              <Skeleton className="h-4 w-24" />
+
+              <div className="flex gap-3">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="w-9 h-9 rounded-full"
+                  />
+                ))}
+              </div>
+
+            </div>
+
+
+            {/* Sizes */}
+            <div className="space-y-3">
+
+              <Skeleton className="h-4 w-24" />
+
+              <div className="flex gap-3 flex-wrap">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="w-16 h-9 rounded-md"
+                  />
+                ))}
+              </div>
+
+            </div>
+
+
+            {/* Buttons */}
+            <div className="flex gap-4 pt-3">
+
+              <Skeleton className="h-12 flex-1 rounded-full" />
+              <Skeleton className="h-12 flex-1 rounded-full" />
+
+            </div>
+
+
+            {/* Trust Info */}
+            <div className="space-y-2 pt-4">
+
+              {[...Array(3)].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="h-4 w-2/3"
+                />
+              ))}
+
+            </div>
+
           </div>
+
         </div>
 
-        {/* Right: Product Info */}
-        <div className="col-span-12 lg:col-span-6 space-y-5 p-5">
-          {/* Title */}
-          <Skeleton className="h-8 w-3/4" />
-
-          {/* Price */}
-          <div className="flex gap-4 items-center">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-5 w-12" />
-          </div>
-
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-
-          {/* Colors */}
-          <p className="text-sm font-medium text-gray-500">Select Color</p>
-          <div className="flex gap-3">
-            {[...Array(4)].map((_, idx) => (
-              <Skeleton key={idx} className="h-8 w-16 rounded-full" />
-            ))}
-          </div>
-
-          {/* Sizes */}
-          <p className="text-sm font-medium text-gray-500">Select Size</p>
-          <div className="flex gap-3">
-            {[...Array(4)].map((_, idx) => (
-              <Skeleton key={idx} className="h-8 w-14 rounded-full" />
-            ))}
-          </div>
-
-          {/* Qty & Add To Cart */}
-          <div className="flex gap-5 pt-3">
-            <Skeleton className="h-12 w-28 rounded-full" />
-            <Skeleton className="h-12 flex-1 rounded-full" />
-          </div>
-        </div>
       </div>
 
-      {/* Reviews Section Preview */}
-      <div className="mt-10 space-y-6">
-        {[...Array(2)].map((_, idx) => (
-          <Skeleton key={idx} className="h-28 w-full rounded-xl" />
-        ))}
-      </div>
     </div>
   );
 }
