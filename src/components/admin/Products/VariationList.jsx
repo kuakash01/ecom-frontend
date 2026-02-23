@@ -1,365 +1,993 @@
-import React, { useMemo, useState } from "react";
+// import React, { useMemo, useState } from "react";
+// import { Controller, useForm } from "react-hook-form";
+// import MultipleImageUpload from "../../common/form/MultipleImageUpload";
+// import Input from "../../common/form/input/InputField";
+// import Label from "../../common/form/Label";
+// import { Check } from "lucide-react";
+// import api from "../../../config/apiAdmin";
+// import { toast } from "react-toastify";
+
+// const ProductVariationsView = ({ productId, setMode, productVariations, colorGalleries }) => {
+//     // const variations = productVariations || [];
+//     const [variations, setVariations] = useState(productVariations || []);
+//     const [colorGalleriesState, setColorGalleriesState] = useState(colorGalleries || []);
+
+//     const groupedByColor = useMemo(() => {
+//         const map = {};
+
+//         variations.forEach(v => {
+//             const colorId = v.color._id;
+
+//             if (!map[colorId]) {
+//                 // Find the corresponding color gallery from colorGalleriesState
+//                 const matchedGallery = colorGalleriesState.find(
+//                     cg => cg.color === colorId || cg.color._id === colorId
+//                 );
+
+//                 map[colorId] = {
+//                     color: v.color,
+//                     gallery: matchedGallery?.gallery || [], // use gallery from colorGalleriesState
+//                     variations: []
+//                 };
+//             }
+
+//             map[colorId].variations.push(v);
+//         });
+
+//         return Object.values(map);
+//     }, [variations, colorGalleriesState]);
+
+
+//     const { reset, control, watch } = useForm({
+//         defaultValues: {
+//             colorGalleries: groupedByColor.map(g => ({
+//                 colorId: g.color._id,
+//                 gallery: g.gallery || []
+//             })),
+//             variantDetails: variations.map(v => ({
+//                 price: v.price,
+//                 mrp: v.mrp,
+//                 quantity: v.quantity,
+//                 sku: v.sku || "",
+//                 _id: v._id
+//             }))
+//         }
+//     });
+
+//     const watchedColorGalleries = watch("colorGalleries");
+//     const watchedVariants = watch("variantDetails");
+
+//     const [loadingGallery, setLoadingGallery] = useState(null);
+//     const [loadingVariant, setLoadingVariant] = useState(null);
+
+//     const updateColorGallery = async (colorId, gallery) => {
+//         setLoadingGallery(colorId);
+
+//         const formData = new FormData();
+
+//         // 1. Existing & new images
+//         const existingGallery = [];
+
+//         gallery.forEach((img, index) => {
+//             const baseInfo = {
+//                 url: img.url || null,
+//                 public_id: img.public_id || null,
+//                 position: index
+//             };
+
+//             if (img.file) {
+//                 // New image
+//                 formData.append("newImages", img.file);
+//             } else {
+//                 // Existing image
+//                 existingGallery.push(baseInfo);
+//             }
+//         });
+
+//         // 2. Append existing gallery (must be JSON string)
+//         formData.append("gallery", JSON.stringify(existingGallery));
+
+//         try {
+//             const res = await api.patch(
+//                 `/admin/products/${productId}/color-gallery/${colorId}`,
+//                 formData
+//             );
+
+//             // Update local state
+//             // setColorGalleriesState(prev => {
+//             //     const otherGalleries = prev.filter(cg => cg.color !== colorId && cg.color._id !== colorId);
+//             //     return [
+//             //         ...otherGalleries,
+//             //         {
+//             //             color: colorId,
+//             //             gallery: res.data.gallery
+//             //         }
+//             //     ];
+//             // });
+//             const response = await api.get(`/admin/products/${productId}/color-gallery`);
+//             setColorGalleriesState(response.data.data || []);
+//             reset({
+//                 colorGalleries: groupedByColor.map(g => ({
+//                     colorId: g.color._id,
+//                     gallery: g.gallery || []
+//                 })),
+//                 variantDetails: variations.map(v => ({
+//                     price: v.price,
+//                     mrp: v.mrp,
+//                     quantity: v.quantity,
+//                     sku: v.sku || "",
+//                     _id: v._id
+//                 }))
+//             });
+//             toast.success("Gallery updated");
+//         } catch (error) {
+//             console.error("Error updating gallery:", error);
+//             toast.error("Failed to update gallery.");
+//         } finally {
+//             setLoadingGallery(null);
+//         }
+//     };
+
+
+//     // PATCH update for a specific variant
+//     const updateVariant = async (variantId, data) => {
+//         setLoadingVariant(variantId);
+//         try {
+//             const res = await api.patch(`/admin/products/${productId}/variants/${variantId}`, data);
+
+//             // Refresh variations
+//             const response = await api.get(`/admin/products/${productId}/variants`);
+//             const updated = response.data.variations || [];
+//             setVariations(updated);
+
+//             reset({
+//                 colorGalleries: groupedByColor.map(g => ({
+//                     colorId: g.color._id,
+//                     gallery: g.gallery || []
+//                 })),
+//                 variantDetails: updated.map(v => ({
+//                     price: v.price,
+//                     mrp: v.mrp,
+//                     quantity: v.quantity,
+//                     sku: v.sku || "",
+//                     _id: v._id
+//                 }))
+//             });
+
+
+//             toast.success("Variant updated");
+//         } catch (error) {
+//             console.error("Error updating variant:", error);
+//             toast.error("Failed to update variant.");
+//         } finally {
+//             setLoadingVariant(null);
+//         }
+//     };
+
+
+//     if (!variations.length) {
+//         return <p className="text-gray-500">No variations found.</p>;
+//     }
+
+//     let variantIndex = 0;
+
+//     return (
+//         <div className="space-y-6 pb-10">
+//             <h1 className="text-2xl font-bold">Manage Variations</h1>
+
+//             {groupedByColor.map((group, groupIndex) => {
+//                 const savedGallery = group.gallery;
+//                 const currentGallery = watchedColorGalleries[groupIndex].gallery;
+//                 const galleryChanged =
+//                     JSON.stringify(savedGallery) !== JSON.stringify(currentGallery);
+//                 return (
+//                     <div
+//                         key={group.color._id}
+//                         className="border p-5 rounded-xl shadow-sm bg-white space-y-6"
+//                     >
+//                         {/* COLOR HEADER */}
+//                         <div className="flex items-center justify-between">
+//                             <div className="flex items-center gap-3">
+//                                 <div
+//                                     className="w-6 h-6 rounded-full border"
+//                                     style={{ backgroundColor: group.color.colorHex }}
+//                                 />
+//                                 <p className="font-semibold text-gray-900 text-lg">
+//                                     {group.color.colorName}
+//                                 </p>
+//                             </div>
+
+//                             {/* TICK FOR GALLERY */}
+//                             {galleryChanged && (
+//                                 <button
+//                                     onClick={() =>
+//                                         updateColorGallery(group.color._id, currentGallery)
+//                                     }
+//                                     className="px-3 py-1 bg-green-500 text-white rounded flex items-center gap-1"
+//                                 >
+//                                     {loadingGallery === group.color._id ? (
+//                                         "Saving..."
+//                                     ) : (
+//                                         <Check size={18} />
+//                                     )}
+//                                 </button>
+//                             )}
+//                         </div>
+
+//                         {/* GALLERY */}
+//                         <div className="space-y-2">
+//                             <p className="font-medium">Gallery</p>
+//                             <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+//                                 <Controller
+//                                     name={`colorGalleries.${groupIndex}.gallery`}
+//                                     control={control}
+//                                     render={({ field }) => (
+//                                         <MultipleImageUpload
+//                                             value={field.value}
+//                                             onChange={field.onChange}
+//                                             label={`gallery-${group.color._id}`}
+//                                             multiple
+//                                         />
+//                                     )}
+//                                 />
+//                             </div>
+//                         </div>
+
+//                         {/* VARIANT DETAILS */}
+//                         <div className="space-y-6">
+//                             <p className="font-semibold text-gray-800">Variation Details</p>
+
+//                             {group.variations.map(v => {
+//                                 const idx = variantIndex++;
+//                                 const watched = watchedVariants[idx];
+
+//                                 const variantChanged =
+//                                     watched.price !== v.price ||
+//                                     watched.mrp !== v.mrp ||
+//                                     watched.quantity !== v.quantity;
+
+//                                 return (
+//                                     <div
+//                                         key={v._id}
+//                                         className="border rounded-md p-4 bg-gray-50 space-y-4 relative"
+//                                     >
+//                                         {/* TICK BUTTON */}
+//                                         {variantChanged && (
+//                                             <button
+//                                                 onClick={() =>
+//                                                     updateVariant(v._id, {
+//                                                         price: watched.price,
+//                                                         mrp: watched.mrp,
+//                                                         quantity: watched.quantity
+//                                                     })
+//                                                 }
+//                                                 className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded"
+//                                             >
+//                                                 {loadingVariant === v._id ? (
+//                                                     "..."
+//                                                 ) : (
+//                                                     <Check size={18} />
+//                                                 )}
+//                                             </button>
+//                                         )}
+
+//                                         <div className="text-sm text-gray-700 font-medium">
+//                                             Size: {v.size?.sizeName}
+//                                         </div>
+
+//                                         <div className="grid grid-cols-12 gap-4">
+//                                             {/* PRICE */}
+//                                             <div className="col-span-12 md:col-span-6 lg:col-span-3">
+//                                                 <Label>Price</Label>
+//                                                 <Controller
+//                                                     name={`variantDetails.${idx}.price`}
+//                                                     control={control}
+//                                                     render={({ field }) => (
+//                                                         <Input {...field} placeholder="Price" />
+//                                                     )}
+//                                                 />
+//                                             </div>
+
+//                                             {/* MRP */}
+//                                             <div className="col-span-12 md:col-span-6 lg:col-span-3">
+//                                                 <Label>MRP</Label>
+//                                                 <Controller
+//                                                     name={`variantDetails.${idx}.mrp`}
+//                                                     control={control}
+//                                                     render={({ field }) => (
+//                                                         <Input {...field} placeholder="MRP" />
+//                                                     )}
+//                                                 />
+//                                             </div>
+
+//                                             {/* Quantity */}
+//                                             <div className="col-span-12 md:col-span-6 lg:col-span-3">
+//                                                 <Label>Quantity</Label>
+//                                                 <Controller
+//                                                     name={`variantDetails.${idx}.quantity`}
+//                                                     control={control}
+//                                                     render={({ field }) => (
+//                                                         <Input {...field} placeholder="Quantity" />
+//                                                     )}
+//                                                 />
+//                                             </div>
+
+//                                             {/* SKU */}
+//                                             <div className="col-span-12 md:col-span-6 lg:col-span-3">
+//                                                 <Label>SKU</Label>
+//                                                 <Controller
+//                                                     name={`variantDetails.${idx}.sku`}
+//                                                     control={control}
+//                                                     render={({ field }) => (
+//                                                         <Input {...field} readOnly placeholder="SKU" />
+//                                                     )}
+//                                                 />
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 );
+//                             })}
+//                         </div>
+//                     </div>
+//                 );
+//             })}
+
+//             <button
+//                 onClick={() => setMode("list")}
+//                 className="absolute top-2 right-2 text-gray-500 hover:text-black cursor-pointer"
+//             >
+//                 &lt; Back
+//             </button>
+//         </div>
+//     );
+// };
+
+// export default ProductVariationsView;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import MultipleImageUpload from "../../common/form/MultipleImageUpload";
 import Input from "../../common/form/input/InputField";
 import Label from "../../common/form/Label";
-import { Check } from "lucide-react";
+import { Check, Plus, X, Trash2 } from "lucide-react";
 import api from "../../../config/apiAdmin";
 import { toast } from "react-toastify";
+import SearchSelect from "../../common/form/SearchSelect"
 
-const ProductVariationsView = ({ productId, setMode, productVariations, colorGalleries }) => {
-    // const variations = productVariations || [];
+
+
+const ProductVariationsView = ({
+    productId,
+    setMode,
+    productVariations,
+    colorGalleries,
+
+}) => {
+
+    /* ---------------- STATES ---------------- */
+
     const [variations, setVariations] = useState(productVariations || []);
     const [colorGalleriesState, setColorGalleriesState] = useState(colorGalleries || []);
+
+    const [showAddForm, setShowAddForm] = useState(false);
+
+    const [newVariant, setNewVariant] = useState({
+        color: "",
+        size: "",
+        price: "",
+        mrp: "",
+        quantity: ""
+    });
+
+    const [loadingGallery, setLoadingGallery] = useState(null);
+    const [loadingVariant, setLoadingVariant] = useState(null);
+
+    const [colors, setColors] = useState([]);
+    const [sizes, setSizes] = useState([]);
+
+    const colorOptions = colors.map(c => ({
+        label: c.colorName,
+        value: c._id
+    }));
+
+    const sizeOptions = sizes.map(s => ({
+        label: s.sizeName,
+        value: s._id
+    }));
+
+
+    useEffect(() => {
+        const load = async () => {
+            const c = await api.get("/admin/colors");
+            const s = await api.get("/admin/sizes");
+
+            setColors(c.data.data);
+            setSizes(s.data.data);
+        };
+
+        load();
+    }, []);
+
+
+
+    /* ---------------- GROUP BY COLOR ---------------- */
 
     const groupedByColor = useMemo(() => {
         const map = {};
 
-        variations.forEach(v => {
-            const colorId = v.color._id;
+        variations
+            .filter(v => v.isActive !== false)
+            .forEach(v => {
 
-            if (!map[colorId]) {
-                // Find the corresponding color gallery from colorGalleriesState
-                const matchedGallery = colorGalleriesState.find(
-                    cg => cg.color === colorId || cg.color._id === colorId
-                );
+                const colorId = v.color._id;
 
-                map[colorId] = {
-                    color: v.color,
-                    gallery: matchedGallery?.gallery || [], // use gallery from colorGalleriesState
-                    variations: []
-                };
-            }
+                if (!map[colorId]) {
 
-            map[colorId].variations.push(v);
-        });
+                    const matchedGallery =
+                        colorGalleriesState.find(
+                            cg => cg.color === colorId || cg.color?._id === colorId
+                        );
+
+                    map[colorId] = {
+                        color: v.color,
+                        gallery: matchedGallery?.gallery || [],
+                        variations: []
+                    };
+                }
+
+                map[colorId].variations.push(v);
+            });
 
         return Object.values(map);
+
     }, [variations, colorGalleriesState]);
 
 
-    const { reset, control, watch } = useForm({
+    /* ---------------- FORM ---------------- */
+
+    const { control, watch, reset } = useForm({
         defaultValues: {
             colorGalleries: groupedByColor.map(g => ({
                 colorId: g.color._id,
                 gallery: g.gallery || []
             })),
+
             variantDetails: variations.map(v => ({
                 price: v.price,
                 mrp: v.mrp,
                 quantity: v.quantity,
-                sku: v.sku || "",
+                sku: v.sku,
                 _id: v._id
             }))
         }
     });
 
-    const watchedColorGalleries = watch("colorGalleries");
+    const watchedGalleries = watch("colorGalleries");
     const watchedVariants = watch("variantDetails");
 
-    const [loadingGallery, setLoadingGallery] = useState(null);
-    const [loadingVariant, setLoadingVariant] = useState(null);
 
-    const updateColorGallery = async (colorId, gallery) => {
-        setLoadingGallery(colorId);
+    /* ---------------- REFRESH DATA ---------------- */
 
-        const formData = new FormData();
+    const refreshVariants = async () => {
+        const res = await api.get(`/admin/products/${productId}/variants`);
+        setVariations(res.data.variations || []);
+    };
 
-        // 1. Existing & new images
-        const existingGallery = [];
+    const refreshGalleries = async () => {
+        const res = await api.get(`/admin/products/${productId}/color-gallery`);
+        setColorGalleriesState(res.data.data || []);
+    };
 
-        gallery.forEach((img, index) => {
-            const baseInfo = {
-                url: img.url || null,
-                public_id: img.public_id || null,
-                position: index
-            };
 
-            if (img.file) {
-                // New image
-                formData.append("newImages", img.file);
-            } else {
-                // Existing image
-                existingGallery.push(baseInfo);
-            }
-        });
+    /* ---------------- ADD VARIANT ---------------- */
 
-        // 2. Append existing gallery (must be JSON string)
-        formData.append("gallery", JSON.stringify(existingGallery));
-
+    const handleAddVariant = async () => {
         try {
-            const res = await api.patch(
-                `/admin/products/${productId}/color-gallery/${colorId}`,
-                formData
+
+            await api.post(
+                `/admin/products/${productId}/variants`,
+                newVariant
             );
 
-            // Update local state
-            // setColorGalleriesState(prev => {
-            //     const otherGalleries = prev.filter(cg => cg.color !== colorId && cg.color._id !== colorId);
-            //     return [
-            //         ...otherGalleries,
-            //         {
-            //             color: colorId,
-            //             gallery: res.data.gallery
-            //         }
-            //     ];
-            // });
-            const response = await api.get(`/admin/products/${productId}/color-gallery`);
-            setColorGalleriesState(response.data.data || []);
-            reset({
-                colorGalleries: groupedByColor.map(g => ({
-                    colorId: g.color._id,
-                    gallery: g.gallery || []
-                })),
-                variantDetails: variations.map(v => ({
-                    price: v.price,
-                    mrp: v.mrp,
-                    quantity: v.quantity,
-                    sku: v.sku || "",
-                    _id: v._id
-                }))
+            await refreshVariants();
+
+            toast.success("Variant added");
+
+            setShowAddForm(false);
+
+            setNewVariant({
+                color: "",
+                size: "",
+                price: "",
+                mrp: "",
+                quantity: ""
             });
-            toast.success("Gallery updated");
-        } catch (error) {
-            console.error("Error updating gallery:", error);
-            toast.error("Failed to update gallery.");
-        } finally {
-            setLoadingGallery(null);
+
+        } catch (err) {
+            console.log("variant add error", err);
+            toast.error(
+                err.response?.data?.message || "Failed to add"
+            );
         }
     };
 
 
-    // PATCH update for a specific variant
-    const updateVariant = async (variantId, data) => {
-        setLoadingVariant(variantId);
+    /* ---------------- DISABLE VARIANT ---------------- */
+
+    const disableVariant = async (id) => {
         try {
-            const res = await api.patch(`/admin/products/${productId}/variants/${variantId}`, data);
 
-            // Refresh variations
-            const response = await api.get(`/admin/products/${productId}/variants`);
-            const updated = response.data.variations || [];
-            setVariations(updated);
+            await api.patch(
+                `/admin/products/${productId}/variants/${id}/disable`
+            );
 
-            reset({
-                colorGalleries: groupedByColor.map(g => ({
-                    colorId: g.color._id,
-                    gallery: g.gallery || []
-                })),
-                variantDetails: updated.map(v => ({
-                    price: v.price,
-                    mrp: v.mrp,
-                    quantity: v.quantity,
-                    sku: v.sku || "",
-                    _id: v._id
-                }))
-            });
+            await refreshVariants();
+
+            toast.success("Variant disabled");
+
+        } catch {
+            toast.error("Failed");
+        }
+    };
 
 
-            toast.success("Variant updated");
-        } catch (error) {
-            console.error("Error updating variant:", error);
-            toast.error("Failed to update variant.");
+    /* ---------------- UPDATE VARIANT ---------------- */
+
+    const updateVariant = async (variantId, data) => {
+
+        setLoadingVariant(variantId);
+
+        try {
+
+            await api.patch(
+                `/admin/products/${productId}/variants/${variantId}`,
+                data
+            );
+
+            await refreshVariants();
+
+            toast.success("Updated");
+
+        } catch {
+            toast.error("Failed");
         } finally {
             setLoadingVariant(null);
         }
     };
 
 
+    /* ---------------- UPDATE GALLERY ---------------- */
+
+    const updateColorGallery = async (colorId, gallery) => {
+
+        setLoadingGallery(colorId);
+
+        const formData = new FormData();
+
+        const existing = [];
+
+        gallery.forEach((img, i) => {
+
+            if (img.file) {
+                formData.append("newImages", img.file);
+            } else {
+                existing.push({
+                    url: img.url,
+                    public_id: img.public_id,
+                    position: i
+                });
+            }
+
+        });
+
+        formData.append("gallery", JSON.stringify(existing));
+
+        try {
+
+            await api.patch(
+                `/admin/products/${productId}/color-gallery/${colorId}`,
+                formData
+            );
+
+            await refreshGalleries();
+
+            toast.success("Gallery updated");
+
+        } catch {
+            toast.error("Failed");
+        } finally {
+            setLoadingGallery(null);
+        }
+    };
+
+
+    /* ---------------- UI ---------------- */
+
     if (!variations.length) {
-        return <p className="text-gray-500">No variations found.</p>;
+        return <p>No variations</p>;
     }
 
     let variantIndex = 0;
 
-    return (
-        <div className="space-y-6 pb-10">
-            <h1 className="text-2xl font-bold">Manage Variations</h1>
 
-            {groupedByColor.map((group, groupIndex) => {
+    return (
+        <div className="space-y-6 pb-16 relative">
+
+
+            {/* HEADER */}
+
+            <div className="flex justify-between items-center">
+
+                <h1 className="text-2xl font-bold" >
+                    Manage Variations
+                </h1>
+
+                <div className="flex gap-3">
+
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="bg-black text-white px-4 py-2 rounded flex item-center gap-1"
+                    >
+                        <Plus size={16} /> <div>Add Variant</div>
+                    </button>
+
+                    <button
+                        onClick={() => setMode("list")}
+                        className="border px-3 py-2 rounded"
+                    >
+                        Back
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            {/* ADD MODAL */}
+
+            {showAddForm && (
+
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+
+                    <div className="bg-white w-[420px] p-6 rounded-xl space-y-4 overflow-visible">
+
+                        <div className="flex justify-between items-center">
+
+                            <h2 className="font-semibold text-lg">
+                                Add New Variant
+                            </h2>
+
+                            <X
+                                onClick={() => setShowAddForm(false)}
+                                className="cursor-pointer"
+                            />
+
+                        </div>
+
+
+                        {/* <select
+                            value={newVariant.color}
+                            onChange={e =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    color: e.target.value
+                                })
+                            }
+                            className="w-full border p-2 rounded"
+                        >
+                            <option value="">Select Color</option>
+
+                            {colors.map(c => (
+                                <option key={c._id} value={c._id}>
+                                    {c.colorName}
+                                </option>
+                            ))}
+                        </select> */}
+                        <SearchSelect
+                            label="Color"
+                            options={colorOptions}
+                            multiple={false} // ✅ single select
+                            placeholder="Select Color"
+                            defaultSelected={
+                                newVariant.color ? [newVariant.color] : []
+                            }
+                            onChange={(value) =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    color: value
+                                })
+                            }
+                        />
+
+
+
+                        {/* <select
+                            value={newVariant.size}
+                            onChange={e =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    size: e.target.value
+                                })
+                            }
+                            className="w-full border p-2 rounded"
+                        >
+                            <option value="">Select Size</option>
+
+                            {sizes.map(s => (
+                                <option key={s._id} value={s._id}>
+                                    {s.sizeName}
+                                </option>
+                            ))}
+                        </select> */}
+                        <SearchSelect
+                            label="Size"
+                            options={sizeOptions}
+                            multiple={false} // ✅ single select
+                            placeholder="Select Size"
+                            defaultSelected={
+                                newVariant.size ? [newVariant.size] : []
+                            }
+                            onChange={(value) =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    size: value
+                                })
+                            }
+                        />
+
+
+
+                        <Input
+                            placeholder="Price"
+                            value={newVariant.price}
+                            onChange={e =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    price: e.target.value
+                                })
+                            }
+                        />
+
+                        <Input
+                            placeholder="MRP"
+                            value={newVariant.mrp}
+                            onChange={e =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    mrp: e.target.value
+                                })
+                            }
+                        />
+
+                        <Input
+                            placeholder="Quantity"
+                            value={newVariant.quantity}
+                            onChange={e =>
+                                setNewVariant({
+                                    ...newVariant,
+                                    quantity: e.target.value
+                                })
+                            }
+                        />
+
+
+                        <div className="flex gap-3 pt-3">
+
+                            <button
+                                onClick={handleAddVariant}
+                                className="flex-1 bg-black text-white py-2 rounded"
+                            >
+                                Save
+                            </button>
+
+                            <button
+                                onClick={() => setShowAddForm(false)}
+                                className="flex-1 border py-2 rounded"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
+
+
+            {/* EXISTING VARIANTS */}
+
+            {groupedByColor.map((group, gIndex) => {
+
                 const savedGallery = group.gallery;
-                const currentGallery = watchedColorGalleries[groupIndex].gallery;
+                const currentGallery = watchedGalleries[gIndex]?.gallery;
+
                 const galleryChanged =
-                    JSON.stringify(savedGallery) !== JSON.stringify(currentGallery);
+                    JSON.stringify(savedGallery) !==
+                    JSON.stringify(currentGallery);
+
+
                 return (
+
                     <div
                         key={group.color._id}
-                        className="border p-5 rounded-xl shadow-sm bg-white space-y-6"
+                        className="border p-5 rounded-xl bg-white space-y-6"
                     >
+
                         {/* COLOR HEADER */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+
+                        <div className="flex justify-between">
+
+                            <div className="flex gap-3 items-center">
+
                                 <div
-                                    className="w-6 h-6 rounded-full border"
-                                    style={{ backgroundColor: group.color.colorHex }}
+                                    className="w-5 h-5 rounded-full border"
+                                    style={{
+                                        backgroundColor: group.color.colorHex
+                                    }}
                                 />
-                                <p className="font-semibold text-gray-900 text-lg">
-                                    {group.color.colorName}
-                                </p>
+
+                                <b>{group.color.colorName}</b>
+
                             </div>
 
-                            {/* TICK FOR GALLERY */}
+
                             {galleryChanged && (
                                 <button
                                     onClick={() =>
-                                        updateColorGallery(group.color._id, currentGallery)
+                                        updateColorGallery(
+                                            group.color._id,
+                                            currentGallery
+                                        )
                                     }
-                                    className="px-3 py-1 bg-green-500 text-white rounded flex items-center gap-1"
+                                    className="bg-green-500 text-white px-2 rounded"
                                 >
-                                    {loadingGallery === group.color._id ? (
-                                        "Saving..."
-                                    ) : (
-                                        <Check size={18} />
-                                    )}
+                                    {loadingGallery === group.color._id
+                                        ? "Saving"
+                                        : <Check size={16} />}
                                 </button>
                             )}
+
                         </div>
+
 
                         {/* GALLERY */}
-                        <div className="space-y-2">
-                            <p className="font-medium">Gallery</p>
-                            <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
-                                <Controller
-                                    name={`colorGalleries.${groupIndex}.gallery`}
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultipleImageUpload
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            label={`gallery-${group.color._id}`}
-                                            multiple
-                                        />
-                                    )}
+
+                        <Controller
+                            name={`colorGalleries.${gIndex}.gallery`}
+                            control={control}
+                            render={({ field }) => (
+                                <MultipleImageUpload
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    multiple
                                 />
-                            </div>
-                        </div>
+                            )}
+                        />
 
-                        {/* VARIANT DETAILS */}
-                        <div className="space-y-6">
-                            <p className="font-semibold text-gray-800">Variation Details</p>
 
-                            {group.variations.map(v => {
-                                const idx = variantIndex++;
-                                const watched = watchedVariants[idx];
+                        {/* VARIANTS */}
 
-                                const variantChanged =
-                                    watched.price !== v.price ||
-                                    watched.mrp !== v.mrp ||
-                                    watched.quantity !== v.quantity;
+                        {group.variations.map(v => {
 
-                                return (
-                                    <div
-                                        key={v._id}
-                                        className="border rounded-md p-4 bg-gray-50 space-y-4 relative"
+                            const idx = variantIndex++;
+
+                            const watched = watchedVariants[idx];
+
+                            const changed =
+                                watched?.price !== v.price ||
+                                watched?.mrp !== v.mrp ||
+                                watched?.quantity !== v.quantity;
+
+
+                            return (
+
+                                <div
+                                    key={v._id}
+                                    className="border p-4 rounded bg-gray-50 relative space-y-3"
+                                >
+
+                                    {/* SAVE */}
+
+                                    {changed && (
+                                        <button
+                                            onClick={() =>
+                                                updateVariant(v._id, {
+                                                    price: watched.price,
+                                                    mrp: watched.mrp,
+                                                    quantity: watched.quantity
+                                                })
+                                            }
+                                            className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded"
+                                        >
+                                            {loadingVariant === v._id
+                                                ? "..."
+                                                : <Check size={16} />}
+                                        </button>
+                                    )}
+
+
+                                    {/* DISABLE */}
+
+                                    <button
+                                        onClick={() => disableVariant(v._id)}
+                                        className="absolute bottom-2 right-2 text-red-500"
                                     >
-                                        {/* TICK BUTTON */}
-                                        {variantChanged && (
-                                            <button
-                                                onClick={() =>
-                                                    updateVariant(v._id, {
-                                                        price: watched.price,
-                                                        mrp: watched.mrp,
-                                                        quantity: watched.quantity
-                                                    })
-                                                }
-                                                className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded"
-                                            >
-                                                {loadingVariant === v._id ? (
-                                                    "..."
-                                                ) : (
-                                                    <Check size={18} />
-                                                )}
-                                            </button>
-                                        )}
+                                        <Trash2 size={14} />
+                                    </button>
 
-                                        <div className="text-sm text-gray-700 font-medium">
-                                            Size: {v.size?.sizeName}
-                                        </div>
 
-                                        <div className="grid grid-cols-12 gap-4">
-                                            {/* PRICE */}
-                                            <div className="col-span-12 md:col-span-6 lg:col-span-3">
-                                                <Label>Price</Label>
-                                                <Controller
-                                                    name={`variantDetails.${idx}.price`}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Input {...field} placeholder="Price" />
-                                                    )}
-                                                />
-                                            </div>
+                                    <p className="text-sm font-medium">
+                                        Size: {v.size.sizeName}
+                                    </p>
 
-                                            {/* MRP */}
-                                            <div className="col-span-12 md:col-span-6 lg:col-span-3">
-                                                <Label>MRP</Label>
-                                                <Controller
-                                                    name={`variantDetails.${idx}.mrp`}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Input {...field} placeholder="MRP" />
-                                                    )}
-                                                />
-                                            </div>
 
-                                            {/* Quantity */}
-                                            <div className="col-span-12 md:col-span-6 lg:col-span-3">
-                                                <Label>Quantity</Label>
-                                                <Controller
-                                                    name={`variantDetails.${idx}.quantity`}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Input {...field} placeholder="Quantity" />
-                                                    )}
-                                                />
-                                            </div>
+                                    <div className="grid grid-cols-4 gap-3">
 
-                                            {/* SKU */}
-                                            <div className="col-span-12 md:col-span-6 lg:col-span-3">
-                                                <Label>SKU</Label>
-                                                <Controller
-                                                    name={`variantDetails.${idx}.sku`}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Input {...field} readOnly placeholder="SKU" />
-                                                    )}
-                                                />
-                                            </div>
-                                        </div>
+                                        <Controller
+                                            name={`variantDetails.${idx}.price`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Input {...field} />
+                                            )}
+                                        />
+
+                                        <Controller
+                                            name={`variantDetails.${idx}.mrp`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Input {...field} />
+                                            )}
+                                        />
+
+                                        <Controller
+                                            name={`variantDetails.${idx}.quantity`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Input {...field} />
+                                            )}
+                                        />
+
+                                        <Controller
+                                            name={`variantDetails.${idx}.sku`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Input {...field} readOnly />
+                                            )}
+                                        />
+
                                     </div>
-                                );
-                            })}
-                        </div>
+
+                                </div>
+
+                            );
+                        })}
+
                     </div>
                 );
             })}
 
-            <button
-                onClick={() => setMode("list")}
-                className="absolute top-2 right-2 text-gray-500 hover:text-black cursor-pointer"
-            >
-                &lt; Back
-            </button>
         </div>
     );
 };
 
 export default ProductVariationsView;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

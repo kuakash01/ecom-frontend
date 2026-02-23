@@ -1,56 +1,268 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../../config/apiUser";
 import { Link } from "react-router-dom";
-
+import NewArrivalsSkeleton from "../loadingSkeleton/NewArrivalsSkeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function PopularProducts() {
-  const [products, setProducts] = useState([]);
 
-  const getBestSeller = async () => {
+  const [popularProducts, setPopularProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showArrows, setShowArrows] = useState(false);
+
+  const scrollRef = useRef(null);
+
+
+  /* ================= FETCH ================= */
+
+  const getPopularProducts = async () => {
     try {
+      setLoading(true);
+
       const res = await api.get("products/bestSeller");
-      setProducts(res.data.data);
-      // console.log("best seller", res.data.data);
+      setPopularProducts(res.data.data || []);
+
     } catch (error) {
-      console.error("Error fetching products", error)
+      console.error("Error fetching popular products", error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
 
   useEffect(() => {
-    getBestSeller();
-  }, [])
+    getPopularProducts();
+  }, []);
+
+
+  /* ================= CHECK OVERFLOW ================= */
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+
+    const el = scrollRef.current;
+
+    const checkOverflow = () => {
+      setShowArrows(el.scrollWidth > el.clientWidth);
+    };
+
+    checkOverflow();
+
+    window.addEventListener("resize", checkOverflow);
+
+    return () => window.removeEventListener("resize", checkOverflow);
+
+  }, [popularProducts]);
+
+
+  /* ================= SCROLL ================= */
+
+  const scroll = (dir) => {
+    if (!scrollRef.current) return;
+
+    const cardWidth = 260 + 24;
+
+    scrollRef.current.scrollBy({
+      left: dir === "left" ? -cardWidth : cardWidth,
+      behavior: "smooth",
+    });
+  };
+
+
+  /* ================================================= */
 
   return (
-    <div className=" my-4  rounded-lg ">
-      <h3 className="text-center text-4xl font-bold my-10">Best Seller</h3>
-      <div className="grid grid-cols-12 m-0 md:mx-20 ">
-        {products && products.map((item, i) => (
-          <div key={i} className="col-span-6 md:col-span-3 bg-white rounded-2xl cursor-pointer p-2 group">
-            <Link to="product">
-              <img
-                className="aspect-[14/16] object-cover rounded-2xl w-full group-hover:scale-105 duration-150"
-                src={item.thumbnail.url}
-                alt="product"
-              />
-              <div className="mt-2">
-                <p className="text-sm text-gray-400">{item.category?.name}</p>
-                <p className="text-lg font-medium">{item.name}</p>
-                <div className="flex gap-2 items-center">
-                  <p className="text-md font-semibold">₹ {item.price}</p>
-                  <p className="text-sm line-through">₹ {item.mrp}</p>
-                </div>
-              </div>
-            </Link>
+
+    <div className="bg-gray-50 py-6 md:py-8 relative">
+
+      <div className="px-4 lg:px-8 max-w-[1600px] mx-auto">
+
+
+        {/* ================= TITLE ================= */}
+
+        <h3 className="
+          text-2xl sm:text-3xl lg:text-4xl
+          font-semibold mb-4
+          text-center text-gray-900
+        ">
+          Popular Products
+        </h3>
+
+
+        {/* ================= LOADING ================= */}
+
+        {loading && <NewArrivalsSkeleton count={4} />}
+
+
+        {/* ================= EMPTY ================= */}
+
+        {!loading && popularProducts.length === 0 && (
+          <div className="text-center py-20 text-gray-500">
+            No popular products found 😕
           </div>
-        ))}
+        )}
+
+
+        {/* ================= SLIDER ================= */}
+
+        {!loading && popularProducts.length > 0 && (
+
+          <div className="relative">
+
+
+            {/* Left */}
+            {showArrows && (
+              <button
+                onClick={() => scroll("left")}
+                className="
+                  hidden lg:flex
+                  absolute -left-5 top-1/2 -translate-y-1/2 z-10
+
+                  w-11 h-11 rounded-full
+                  bg-white/90 backdrop-blur
+                  shadow-md hover:shadow-xl hover:scale-105
+
+                  items-center justify-center
+                  transition
+                "
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-700" />
+              </button>
+            )}
+
+
+            {/* Right */}
+            {showArrows && (
+              <button
+                onClick={() => scroll("right")}
+                className="
+                  hidden lg:flex
+                  absolute -right-5 top-1/2 -translate-y-1/2 z-10
+
+                  w-11 h-11 rounded-full
+                  bg-white/90 backdrop-blur
+                  shadow-md hover:shadow-xl hover:scale-105
+
+                  items-center justify-center
+                  transition
+                "
+              >
+                <ChevronRight className="w-5 h-5 text-gray-700" />
+              </button>
+            )}
+
+
+            {/* Scroll */}
+            <div
+              ref={scrollRef}
+              className="
+                flex gap-6
+
+                overflow-x-auto scroll-smooth
+                pb-4 hide-scrollbar
+
+                mx-auto max-w-[1140px]
+                px-4 scroll-pr-20
+              "
+            >
+
+              {popularProducts.map((item, i) => (
+                <div key={i} className="flex-shrink-0">
+                  <ProductCard item={item} />
+                </div>
+              ))}
+
+
+              <Link
+                to="/products"
+                className="
+                  flex-shrink-0
+
+                  bg-black text-white rounded-3xl
+
+                  w-[220px] sm:w-[240px] lg:w-[260px]
+
+                  flex items-center justify-center
+                  text-lg font-semibold
+
+                  hover:bg-gray-900 transition
+                "
+              >
+                Explore More →
+              </Link>
+
+            </div>
+
+          </div>
+        )}
+
       </div>
-      <div className="flex justify-center mt-4">
-        <Link to="/product" className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
-          View all
-        </Link>
-      </div>
+
     </div>
   );
 }
 
 export default PopularProducts;
+
+
+
+/* ================= PRODUCT CARD ================= */
+
+const ProductCard = ({ item }) => (
+
+  <div className="
+    bg-white rounded-3xl overflow-hidden
+    border shadow-sm
+
+    w-[220px] sm:w-[240px] lg:w-[260px]
+
+    hover:shadow-xl hover:-translate-y-1
+    transition
+  ">
+
+    <Link
+      to={`/products/${item._id}`}
+      target="_blank"
+      className="block overflow-hidden group"
+    >
+
+      <img
+        src={item?.thumbnail?.url}
+        alt="product"
+        className="
+          aspect-[3/4] w-full object-cover
+          transition-transform duration-500
+          group-hover:scale-110
+        "
+      />
+
+    </Link>
+
+
+    <div className="p-3 lg:p-4">
+
+      <p className="text-xs uppercase text-gray-500">
+        {item.category}
+      </p>
+
+      <p className="mt-1 font-semibold text-sm lg:text-base line-clamp-2">
+        {item.title}
+      </p>
+
+
+      <div className="flex gap-3 mt-2">
+
+        <span className="font-semibold">
+          ₹{item.price}
+        </span>
+
+        <span className="text-xs line-through text-gray-400">
+          ₹{item.mrp}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+);

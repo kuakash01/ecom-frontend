@@ -47,7 +47,7 @@ const ProtectedAdminRoute = () => {
 
 
   useEffect(() => {
-    console.log("admin routes visited")
+    // console.log("admin routes visited")
     const verifyUser = async () => {
       const user = await checkAuthAdmin();
       if (user) {

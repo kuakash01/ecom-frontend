@@ -44,4 +44,15 @@ export const signout = async () => {
     } catch (err) {
         return null;
     }
+
+}
+
+
+export const signoutUser = async () => {
+    try {
+        const res = await apiUser.get('auth/signout');
+        return res.data
+    } catch (err) {
+        console.error("Error Singout user", err);
+    }
 }

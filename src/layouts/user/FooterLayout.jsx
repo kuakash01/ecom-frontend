@@ -6,7 +6,7 @@ function FooterLayout() {
       {/* <div className="absolute top-0 border">news letter</div> */}
       <div className="grid grid-cols-12 space-y-5 relative">
         <div className="col-span-12 lg:col-span-3 flex flex-col justify-between">
-          <img src="logo" alt="brand logo" />
+          <img className="w-24" src="https://img.freepik.com/premium-vector/logo-company-called-creative-design-your-line_880858-63.jpg" alt="brand logo" />
           <p className="text-gray-600">
             Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ratione
             accusamus veniam ducimus ab saepe iure?

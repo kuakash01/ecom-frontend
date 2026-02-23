@@ -5,15 +5,14 @@ import SidebarLayout from "./SidebarLayout";
 import { useSelector, useDispatch } from "react-redux";
 import FooterLayout from "./FooterLayout";
 import AuthModal from "../../components/user/Auth/AuthModal";
-import { setIsAuthModalOpen, setIsAuthenticated, setUserData } from "../../redux/userSlice";
+import { setIsAuthModalOpen, setIsAuthenticated, setUserData, setIsLoading } from "../../redux/userSlice";
 import { checkAuthUser } from "../../services/authService";
 import api from "../../config/apiAdmin";
 
 function AppLayout() {
   const isSidebarOpen = useSelector((state) => state.theme.isSidebarOpen);
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen);
-  const { isAuthenticated, isAuthModalOpen } = useSelector((state) => state.user)
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, isAuthModalOpen, isLoading } = useSelector((state) => state.user)
 
 
   // const token = localStorage.getItem("token");
@@ -21,7 +20,7 @@ function AppLayout() {
   const dispatch = useDispatch();
 
   const verifyUser = async () => {
-    setLoading(true);
+    dispatch(setIsLoading(true));
     const data = await checkAuthUser();
     // console.log("Auth check user", data);
     if (data && data.isAuthenticated) {
@@ -29,7 +28,7 @@ function AppLayout() {
       dispatch(setUserData(data.userData));
       // dispatch(setIsAuthModalOpen(open))
     }
-    setLoading(false);
+    dispatch(setIsLoading(false));
   };
 
   const syncLocalCart = async () => {
@@ -52,7 +51,7 @@ function AppLayout() {
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(setIsAuthModalOpen(false));
-      if (!loading)
+      if (!isLoading)
         syncLocalCart();
     }
     else dispatch(setIsAuthModalOpen(true))
@@ -62,6 +61,8 @@ function AppLayout() {
   useEffect(() => {
     verifyUser();
   }, [dispatch]);
+
+  if(isLoading) return;
 
   return (
     <div className="  bg-white dark:bg-black/30 relative ">
@@ -92,7 +93,7 @@ function AppLayout() {
           </div>
         </div>
       </div>
-      {!loading && <AuthModal
+      {!isLoading && <AuthModal
         isAuthModalOpen={isAuthModalOpen}
         isAuthenticated={isAuthenticated}
         onClose={() => dispatch(setIsAuthModalOpen(false))}

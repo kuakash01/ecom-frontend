@@ -29,10 +29,10 @@ function AppLayoutAdmin() {
         className={`transition-all duration-500 ease-in-out hover:w-[300px] ${
           isAdminSidebarOpen
             ? !isMobileOpen
-              ? "w-[300px] fixed h-full"
+              ? "w-[300px] fixed h-full z-[999]"
               : "fixed w-[300px] top-0 left-0 translate-x-0 z-30 h-full"
             : !isMobileOpen
-            ? "w-20 fixed h-full"
+            ? "w-20 fixed h-full z-[999]"
             : "fixed w-[300px] top-0 left-0 -translate-x-full z-30 h-full"
         }`}
       >

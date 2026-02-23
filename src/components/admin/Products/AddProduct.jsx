@@ -4,7 +4,7 @@ import Label from "../../common/form/Label";
 import Input from "../../common/form/input/InputField";
 import Textarea from "../../common/form/input/TextArea";
 import Select from "../../common/form/Select";
-import MultiSelect from "../../common/form/MultiSelect";
+import SearchSelect from "../../common/form/SearchSelect";
 
 
 import { useForm, Controller } from "react-hook-form";
@@ -416,8 +416,9 @@ const AddProducts = ({ setMode, revalidator }) => {
             name="variationColor"
             control={control}
             render={({ field }) => (
-              <MultiSelect
+              <SearchSelect
                 options={colorOptions}
+                multiple={true}
 
                 {...field}
                 placeholder="Select Variants"
@@ -434,9 +435,9 @@ const AddProducts = ({ setMode, revalidator }) => {
             name="variationSize"
             control={control}
             render={({ field }) => (
-              <MultiSelect
+              <SearchSelect
                 options={sizeOptions}
-
+                multiple={true}
                 {...field}
                 placeholder="Select Variants"
               />

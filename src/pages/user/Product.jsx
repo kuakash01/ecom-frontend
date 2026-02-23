@@ -1,804 +1,477 @@
-import Badge from "../../components/common/ui/badge/Badge";
-import { useSearchParams, useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import api from "../../config/apiUser";
-import ProductSkeleton from "../../components/user/product/ProductSkeleton";
-import useScrollToTop from "../../hooks/useScrollToTop";
-import { useSelector, useDispatch } from "react-redux";
-import { setIsAuthModalOpen } from "../../redux/userSlice";
-import {setUserData} from "../../redux/userSlice";
-
-
-function Product() {
-  const {isAuthenticated, userData} = useSelector(state => state.user);
-
-  const [productDetail, setProductDetail] = useState(null);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
-  const [selectedSize, setSelectedSize] = useState("");
-
-  const { productId } = useParams();
-
-  // product details
-  const [currentGallery, setCurrentGallery] = useState([]);
-  const [mainImage, setMainImage] = useState("");
-  const [currentVariant, setCurrentVariant] = useState(null);
-  const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const handleColorChange = (colorName) => {
-    setSearchParams({ color: colorName });
-    setSelectedColor(colorName);
-  };
-
-  const getProductDetails = async () => {
-    try {
-      const response = await api.get(`/products/${productId}`);
-      setProductDetail(response.data.data);
-    } catch (error) {
-      console.error("Error fetching product details:", error);
-    }
-  };
-
-  const getColorGallery = async (productId, colorId) => {
-    try {
-      const response = await api.get(
-        `/products/${productId}/color-gallery/${colorId}`
-      );
-      const gallery = response.data.data.gallery;
-      setMainImage(gallery.length > 0 ? gallery[0] : null);
-      setCurrentGallery(gallery);
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setMainImage("image");
-        setCurrentGallery([{ url: null, public_id: "image" }]);
-      } else {
-        console.error("Error fetching color gallery:", error);
-      }
-    }
-  };
-
-  const getColorId = (selectedColor, allColors) => {
-    let colorId = "";
-    allColors.forEach((cg) => {
-      if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
-        colorId = cg._id;
-      }
-    });
-    return colorId;
-  };
-
-  const findVariantsByColor = (colorId, variants) => {
-    return variants.filter((v) => v.color._id.toString() === colorId.toString());
-  };
-
-  // First fetch product
-  useEffect(() => {
-    getProductDetails();
-  }, [productId]);
-
-  // Handle product detail load
-  useEffect(() => {
-    if (!productDetail) return;
-
-    const normalize = (str) =>
-      str ? str.trim().toLowerCase() : "";
-
-    const urlColorRaw = searchParams.get("color");
-    const urlColor = normalize(urlColorRaw);
-
-    let finalColor = "";
-    let variantsForColor = [];
-
-    // 1. If URL has color, force-select that color
-    if (urlColor) {
-      const found = productDetail.allColors.find(
-        (c) => normalize(c.colorName) === urlColor
-      );
-      if (found) {
-        finalColor = found.colorName;
-        const colorId = found._id.toString();
-        variantsForColor = productDetail.variants.filter(
-          (v) => v.color._id.toString() === colorId
-        );
-      }
-    }
-
-    // 2. If no URL or invalid URL color, auto-select first IN-STOCK color
-    if (!finalColor) {
-      const validColorObj = productDetail.allColors.find((color) => {
-        const list = productDetail.variants.filter(
-          (v) =>
-            v.color._id.toString() === color._id.toString() &&
-            v.quantity > 0
-        );
-        return list.length > 0;
-      });
-
-      finalColor = validColorObj
-        ? validColorObj.colorName
-        : productDetail.defaultVariant.color.colorName;
-
-      const colorId = getColorId(finalColor, productDetail.allColors);
-      variantsForColor = findVariantsByColor(
-        colorId,
-        productDetail.variants
-      );
-    }
-
-    setSelectedColor(finalColor);
-    setAllVariantOfAColor(variantsForColor);
-
-    const colorId = getColorId(finalColor, productDetail.allColors);
-    if (variantsForColor.length > 0) {
-      getColorGallery(productId, colorId);
-    }
-
-    else {
-      setCurrentGallery([{ url: null, public_id: "" }]);
-      setMainImage({ url: null, public_id: "" });
-    }
-
-    // else {
-    //   setCurrentGallery(productDetail.defaultGallery);
-    //   setMainImage(productDetail.defaultGallery[0]);
-    // }
-
-    setCurrentVariant(null);
-    setSelectedSize("");
-  }, [productDetail, searchParams]);
-
-
-  useEffect(() => {
-    if (!productDetail || !selectedColor) return;
-
-    const colorId = getColorId(selectedColor, productDetail.allColors);
-    const variantsForColor = findVariantsByColor(colorId, productDetail.variants);
-
-    setAllVariantOfAColor(variantsForColor);
-    getColorGallery(productId, colorId);
-
-    // Reset size and variant instead of auto-selecting
-    setCurrentVariant(null);
-    setSelectedSize("");
-  }, [selectedColor]);
-
-  // When user selects size manually
-  useEffect(() => {
-    if (!selectedSize || allVariantOfAColor.length === 0) return;
-
-    const variant = allVariantOfAColor.find(
-      (v) =>
-        v.size.sizeValue.toLowerCase() ===
-        selectedSize.sizeValue.toLowerCase()
-    );
-
-    if (variant) setCurrentVariant(variant);
-  }, [selectedSize, allVariantOfAColor]);
-
-  // add to cart for guest user
-  const addItemToCartGuest = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existing = cart.find(
-      item => item.productId === productId && item.variantId === currentVariant._id
-    );
-
-    if (existing) {
-      existing.quantity++;
-    } else {
-      cart.push({
-        productId,
-        variantId: currentVariant._id,
-        quantity: 1,
-      });
-    }
-    let localCartCount = cart.reduce((total, item) => total + item.quantity, 0);
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    dispatch(setUserData({...userData, cartCount: localCartCount}));
-  }
-
-  // add to cart for login user
-  const addItemToCartUser = async () => {
-    try {
-      const res = await api.post("/cart/items",
-        {
-          productId,
-          variantId: currentVariant._id,
-          quantity: 1,
-        }
-      )
-      console.log("Item added to cart successfully", res.data);
-    } catch (error) {
-      console.error("Error updating cart :", error);
-    }
-  }
-
-  // add to cart and buy now functionality
-  const handleAddToCart = () => {
-    if (isAuthenticated)
-      addItemToCartUser();
-    else addItemToCartGuest();
-  }
-
-
-  // buy now functionality
-  const handleBuyNow = () => {
-    if (isAuthenticated) {
-      const data = {
-        productId,
-        variantId: currentVariant._id,
-        quantity: 1
-      };
-
-      // Save backup
-      sessionStorage.setItem("checkout_buy_now", JSON.stringify(data));
-
-      // Navigate
-      navigate("/checkout?type=BUY_NOW", { state: data });
-    }
-    else {
-      dispatch(setIsAuthModalOpen(true));
-    }
-  }
-
-  // scroll to top when render page
-  useScrollToTop();
-
-  if (!productDetail) {
-    return <ProductSkeleton />;
-  }
-
-  if (
-    productDetail.allColors.find(
-      (cg) =>
-        cg.colorName.toLowerCase() === selectedColor.toLowerCase()
-    ) === undefined &&
-    selectedColor !== ""
-  ) {
-    return (
-      <div className="py-10 px-10 text-center">
-        Color "{selectedColor}" not available for this product.
-        <button
-          onClick={() => setSearchParams({})}
-          className="underline text-blue-600 cursor-pointer"
-        >
-          See all colors
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full">
-      {/* product details */}
-      {productDetail && (
-        <div className="grid grid-cols-12 ">
-          {/* Left: Image Gallery */}
-          <div className="col-span-12 md:col-span-6 flex items-start flex-col-reverse lg:flex-row gap-4 md:sticky top-0 p-5">
-            <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:h-[70vh]">
-              {currentGallery?.map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setMainImage(img)}
-                  className={`min-w-20 lg:min-w-0 lg:w-20 h-20 rounded-xl border overflow-hidden cursor-pointer transition ${mainImage.url === img.url
-                    ? "border-black"
-                    : "border-gray-300 hover:border-black"
-                    }`}
-                >
-                  <img
-                    src={img.url || `${import.meta.env.VITE_BASE_URL}/images/defaultimage/no-image.jpg`}
-                    className="w-full h-full object-cover"
-                    alt={`Thumbnail ${idx}`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden bg-white">
-              <img
-                src={mainImage.url || `${import.meta.env.VITE_BASE_URL}/images/defaultimage/no-image.jpg`}
-                alt="Main product"
-                className="w-full h-full object-contain"
-              />
-            </div>
-          </div>
-
-          {/* Right: Product Info */}
-          <div className="col-span-12 md:col-span-6 flex flex-col gap-6 p-5">
-            <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 leading-tight">
-              {productDetail.title}
-            </h1>
-
-
-            <div className="flex items-center gap-3">
-              {currentVariant ? (
-                <>
-                  <p className="text-3xl font-bold text-green-700">
-                    ₹{currentVariant.price}
-                  </p>
-
-
-                  {currentVariant.mrp && currentVariant.mrp > currentVariant.price && (
-                    <>
-                      <p className="text-lg line-through text-gray-500">
-                        ₹{currentVariant.mrp}
-                      </p>
-
-                      <Badge
-                        type="discount"><span>{`${Math.round(
-                          ((currentVariant.mrp - currentVariant.price) /
-                            currentVariant.mrp) *
-                          100
-                        )}% OFF`}</span></Badge>
-                    </>
-                  )}
-                </>
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  Select a size to view price
-                </p>
-              )}
-            </div>
-
-
-            {/* Color Selector */}
-            {productDetail.allColors?.length > 1 && (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm font-medium text-gray-700">Select Color</p>
-                <div className="flex gap-3 flex-wrap">
-                  {productDetail.allColors.map((color, idx) => {
-                    const isSelected =
-                      selectedColor?.toLowerCase() ===
-                      color.colorName.toLowerCase();
-
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => handleColorChange(color.colorName)}
-                        className={`w-8 h-8 rounded-full cursor-pointer transition-all duration-200 ${isSelected
-                          ? "border-2 border-gray-400 scale-105 shadow-md"
-                          : "border border-transparent"
-                          } hover:scale-105`}
-                        style={{ backgroundColor: color.colorHex }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Size Selector */}
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-gray-700">Select Size</p>
-              <div className="flex gap-3 flex-wrap">
-                {allVariantOfAColor.map((variant, idx) => {
-                  const isSelected =
-                    selectedSize &&
-                    selectedSize.sizeValue?.toLowerCase() ===
-                    variant.size.sizeValue.toLowerCase();
-                  const isOutOfStock = variant.quantity === 0;
-
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() =>
-                        !isOutOfStock && setSelectedSize(variant.size)
-                      }
-                      className={`px-4 py-1 rounded-lg border text-sm transition ${isSelected
-                        ? "bg-black text-white border-black"
-                        : "border-gray-300"
-                        } ${!isSelected &&
-                        !isOutOfStock &&
-                        "hover:border-black hover:bg-gray-100 cursor-pointer"
-                        } ${isOutOfStock &&
-                        "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
-                        }`}
-                    >
-                      {variant.size.sizeValue}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              {currentVariant ? (
-                currentVariant.quantity > 0 ? (
-                  <>
-                    <button onClick={handleBuyNow} className="flex-1 py-3 w-full bg-[#E8D1C5] rounded-full text-[#452829] font-semibold transition hover:opacity-80">
-                      Buy Now
-                    </button>
-                    <button onClick={handleAddToCart} className="flex-1 py-3 w-full bg-black rounded-full text-white font-semibold transition hover:bg-gray-900">
-                      Add to Cart
-                    </button>
-                  </>
-                ) : (
-                  <div className="w-full py-3 bg-red-200 text-red-700 rounded-full text-center font-semibold tracking-wide">
-                    OUT OF STOCK
-                  </div>
-                )
-              ) : allVariantOfAColor.some((v) => v.quantity > 0) ? (
-                <div className="w-full py-3 bg-yellow-50 text-yellow-700 rounded-full text-center font-medium tracking-wide border border-yellow-300">
-                  Select a size to continue
-                </div>
-              ) : (
-                <div className="w-full py-3 bg-red-200 text-red-700 rounded-full text-center font-semibold tracking-wide">
-                  OUT OF STOCK
-                </div>
-              )}
-            </div>
-
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default Product;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // import Badge from "../../components/common/ui/badge/Badge";
-// import { useLoaderData, useSearchParams, useParams } from "react-router-dom";
-// import { useState, useEffect, useRef } from "react";
-// import { ChevronUp, ChevronDown } from "lucide-react";
-// import api from "../../config/apiAdmin";
-// import NewArrivals from "../../components/user/product/NewArrivals";
+// import { useSearchParams, useParams, useNavigate } from "react-router-dom";
+// import { useState, useEffect } from "react";
+// import api from "../../config/apiUser";
+// import ProductSkeleton from "../../components/user/product/ProductSkeleton";
 // import useScrollToTop from "../../hooks/useScrollToTop";
-
+// import { useSelector, useDispatch } from "react-redux";
+// import { setIsAuthModalOpen, setUserData } from "../../redux/userSlice";
 
 // function Product() {
-//   const productDetail = useLoaderData();
-//   const thumbRef = useRef(null);
-//   const [searchParams, setSearchParams] = useSearchParams();
-//   const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
-//   const [selectedSize, setSelectedSize] = useState("");
+//   const { isAuthenticated, userData } = useSelector(state => state.user);
+
 //   const { productId } = useParams();
+//   const [searchParams, setSearchParams] = useSearchParams();
 
-//   // product details
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+
+//   /* ================= STATES ================= */
+
+//   const [productDetail, setProductDetail] = useState(null);
+
+//   const [selectedColor, setSelectedColor] = useState(
+//     searchParams.get("color") || ""
+//   );
+
+//   const [selectedSize, setSelectedSize] = useState("");
+
 //   const [currentGallery, setCurrentGallery] = useState([]);
-//   const [mainImage, setMainImage] = useState("");
-//   const [currentVariant, setCurrentVariant] = useState(null);
+//   const [mainImage, setMainImage] = useState(null);
+
 //   const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
+//   const [currentVariant, setCurrentVariant] = useState(null);
 
-//   const handleColorChange = (colorId) => {
-//     setSearchParams({ color: colorId });
-//     setSelectedColor(colorId);
-//   };
+//   const [galleryCache, setGalleryCache] = useState({});
+//   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+//   /* ================= HELPERS ================= */
 
-//   const getColorGallery = async (productId, colorId) => {
+//   const normalize = str => (str ? str.trim().toLowerCase() : "");
+
+//   /* ================= API ================= */
+
+//   const getProductDetails = async () => {
 //     try {
-//       const response = await api.get(`/products/${productId}/color-gallery/${colorId}`);
-//       let gallery = response.data.data.gallery;
-//       setMainImage(gallery.length > 0 ? gallery[0] : "");
-//       return setCurrentGallery(gallery);
-//     } catch (error) {
-//       console.error("Error fetching color gallery:", error);
+//       const res = await api.get(`/products/${productId}`);
+//       setProductDetail(res.data.data);
+//     } catch (err) {
+//       console.error("Product fetch error:", err);
 //     }
-//     console.log("productid, colorid", productId, colorId);
 //   };
 
-//   const getColorId = (selectedColor, allColors) => {
-//     let colorId = "";
-//     allColors.forEach(cg => {
-//       if (cg.colorName.toLowerCase() === selectedColor.toLowerCase()) {
-//         colorId = cg._id;
+//   const getColorGallery = async (colorId) => {
+//     try {
+//       // Cache first
+//       if (galleryCache[colorId]) {
+//         const cached = galleryCache[colorId];
+//         setCurrentGallery(cached);
+//         setMainImage(cached[0] || null);
+//         return;
 //       }
-//     });
-//     return colorId;
-//   }
 
+//       const res = await api.get(
+//         `/products/${productId}/color-gallery/${colorId}`
+//       );
 
-//   const findVariantsByColor = (colorId, variants) => {
-//     let vaiant = variants
-//       .filter(v => v.color._id.toString() === colorId.toString())
-//     console.log("vaiant of color", colorId, vaiant);
-//     return vaiant;
-//   }
+//       const gallery = res.data.data.gallery || [];
 
-//   const setProductDetails = () => {
-//     // set details based on selected color
-//     if (selectedColor && productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase())) {
-//       getColorGallery(productId, getColorId(selectedColor, productDetail.allColors));
+//       setGalleryCache(prev => ({
+//         ...prev,
+//         [colorId]: gallery
+//       }));
 
-//       // getVariantByColor(selectedColor);
+//       setCurrentGallery(gallery);
+//       setMainImage(gallery[0] || null);
+
+//     } catch (err) {
+//       console.error("Gallery error:", err);
 //     }
+//   };
 
-//     // set default details if no color selected
-//     else {
-//       setCurrentGallery(productDetail.defaultGallery);
-//       setCurrentVariant(productDetail.defaultVariant);
-//       setMainImage(productDetail.defaultGallery.length > 0 ? productDetail.defaultGallery[0] : "");
-//       setAllVariantOfAColor(findVariantsByColor(productDetail.defaultVariant.color._id, productDetail.variants));
+//   /* ================= COLOR CLICK ================= */
 
+//   const handleColorChange = (colorName) => {
+//     setSelectedColor(colorName);
 
-//     }
-//     setSelectedColor(searchParams.get("color") || productDetail.defaultVariant.color.colorName);
-//   }
+//     // Update URL (replace so back works)
+//     setSearchParams(
+//       { color: colorName },
+//       { replace: true }
+//     );
+//   };
 
+//   /* ================= FETCH PRODUCT ================= */
 
 //   useEffect(() => {
-//     if (!selectedColor) return;
+//     setIsInitialLoad(true);
+//     getProductDetails();
+//   }, [productId]);
 
-//     const variantsForColor = findVariantsByColor(
-//       getColorId(selectedColor, productDetail.allColors),
-//       productDetail.variants
+//   /* ================= INITIAL SETUP ================= */
+
+//   useEffect(() => {
+//     if (!productDetail) return;
+
+//     const urlColor = normalize(searchParams.get("color"));
+
+//     let finalVariant = null;
+//     let finalColor = "";
+
+//     /* 1️⃣ URL priority (NO stock check) */
+//     if (urlColor) {
+//       const matches = productDetail.variants.filter(
+//         v =>
+//           normalize(v.color.colorName) === urlColor
+//       );
+
+//       if (matches.length) {
+//         finalVariant = matches[0];
+//         finalColor = matches[0].color.colorName;
+//       }
+//     }
+
+//     /* 2️⃣ Default */
+//     if (!finalVariant) {
+//       if (productDetail.defaultVariant) {
+//         finalVariant = productDetail.defaultVariant;
+//         finalColor =
+//           productDetail.defaultVariant.color?.colorName || "";
+//       } else {
+//         finalVariant = productDetail.variants[0];
+//         finalColor = finalVariant.color?.colorName || "";
+//       }
+//     }
+
+//     if (!finalVariant) return;
+
+//     /* Variants of this color */
+//     const colorVariants = productDetail.variants.filter(
+//       v =>
+//         normalize(v.color.colorName) ===
+//         normalize(finalColor)
 //     );
 
-//     setAllVariantOfAColor(variantsForColor);
+//     setSelectedColor(finalColor);
+//     setAllVariantOfAColor(colorVariants);
+//     setSelectedSize("");
+//     setCurrentVariant(null);
 
-//     // Set default variant (first one) for this color
-//     if (variantsForColor.length > 0) {
-//       setCurrentVariant(variantsForColor[0]);
-//       setSelectedSize(variantsForColor[0].size); // set default size
+//     /* Initial gallery */
+//     if (isInitialLoad) {
+
+//       const hasUrlColor = !!searchParams.get("color");
+
+//       // If URL has color → always fetch that gallery
+//       if (hasUrlColor) {
+//         getColorGallery(finalVariant.color._id);
+//       }
+
+//       // Else use backend default
+//       else if (productDetail.defaultGallery?.length) {
+//         setCurrentGallery(productDetail.defaultGallery);
+//         setMainImage(productDetail.defaultGallery[0]);
+//       }
+
+//       // Else fallback
+//       else {
+//         getColorGallery(finalVariant.color._id);
+//       }
+
+//       setIsInitialLoad(false);
 //     }
-//   }, [selectedColor, productDetail]);
+
+
+//   }, [productDetail, searchParams]);
+
+//   /* ================= FETCH ON COLOR CHANGE ================= */
 
 //   useEffect(() => {
-//     if (!selectedSize || allVariantOfAColor.length === 0) return;
+//     if (!productDetail || !selectedColor) return;
+
+//     const colorObj = productDetail.allColors.find(
+//       c =>
+//         normalize(c.colorName) ===
+//         normalize(selectedColor)
+//     );
+
+//     if (!colorObj) return;
+
+//     getColorGallery(colorObj._id);
+
+//   }, [selectedColor]);
+
+//   /* ================= AUTO SIZE ================= */
+
+//   useEffect(() => {
+//     if (!allVariantOfAColor.length) return;
+
+//     const firstInStock = allVariantOfAColor.find(
+//       v => v.quantity > 0
+//     );
+
+//     if (firstInStock) {
+//       setSelectedSize(firstInStock.size);
+//       setCurrentVariant(firstInStock);
+//     }
+
+//   }, [allVariantOfAColor]);
+
+//   /* ================= SIZE SELECT ================= */
+
+//   useEffect(() => {
+//     if (!selectedSize) return;
 
 //     const variant = allVariantOfAColor.find(
-//       (v) => v.size.sizeValue.toLowerCase() === selectedSize.sizeValue.toLowerCase()
+//       v =>
+//         normalize(v.size.sizeValue) ===
+//         normalize(selectedSize.sizeValue)
 //     );
 
 //     if (variant) setCurrentVariant(variant);
-//   }, [selectedSize, allVariantOfAColor]);
 
+//   }, [selectedSize]);
 
+//   /* ================= CART ================= */
 
-//   useEffect(() => {
-//     setProductDetails();
-//     console.log("selected color changed", selectedColor);
-//   }, [productDetail, searchParams]);
+//   const addItemToCartGuest = () => {
+//     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-//   useScrollToTop(); // scroll to top on component load
+//     const found = cart.find(
+//       i =>
+//         i.productId === productId &&
+//         i.variantId === currentVariant._id
+//     );
 
-//   if (!productDetail) {
-//     return <div>Loading...</div>;
-//   }
-//   else if (productDetail.allColors.find(cg => cg.colorName.toLowerCase() === selectedColor.toLowerCase()) === undefined && selectedColor !== "") {
-//     return <div className="py-10 px-10 text-center">Color "{selectedColor}" not available for this product. <button onClick={() => setSearchParams({})} className="underline text-blue-600 cursor-pointer" >See all colors</button></div >
-//   }
+//     if (found) found.quantity++;
+//     else {
+//       cart.push({
+//         productId,
+//         variantId: currentVariant._id,
+//         quantity: 1
+//       });
+//     }
+
+//     localStorage.setItem("cart", JSON.stringify(cart));
+
+//     const count = cart.reduce((t, i) => t + i.quantity, 0);
+
+//     dispatch(setUserData({ ...userData, cartCount: count }));
+//   };
+
+//   const addItemToCartUser = async () => {
+//     const res = await api.post("/cart/items", {
+//       productId,
+//       variantId: currentVariant._id,
+//       quantity: 1
+//     });
+
+//     dispatch(
+//       setUserData({
+//         ...userData,
+//         cartCount: res.data.data.cartCount
+//       })
+//     );
+//   };
+
+//   const handleAddToCart = () => {
+//     if (!currentVariant) return;
+
+//     if (isAuthenticated) addItemToCartUser();
+//     else addItemToCartGuest();
+//   };
+
+//   const handleBuyNow = () => {
+//     if (!isAuthenticated) {
+//       dispatch(setIsAuthModalOpen(true));
+//       return;
+//     }
+
+//     const data = {
+//       productId,
+//       variantId: currentVariant._id,
+//       quantity: 1
+//     };
+
+//     sessionStorage.setItem(
+//       "checkout_buy_now",
+//       JSON.stringify(data)
+//     );
+
+//     navigate("/checkout?type=BUY_NOW", { state: data });
+//   };
+
+//   useScrollToTop();
+
+//   /* ================= LOADING ================= */
+
+//   if (!productDetail) return <ProductSkeleton />;
+
+//   /* ================= UI ================= */
+
 //   return (
-//     <div className="py-2  px-2 lg:px-10">
-//       {/* product details */}
-//       {productDetail && <div className="grid grid-cols-12 ">
-//         <div className="col-span-12 lg:col-span-6 grid grid-cols-12 gap-2 p-0 lg:p-10 h-full">
-//           <div className="col-span-12 lg:col-span-3 flex flex-row md:flex-col gap-2 order-2 lg:order-1 overflow-auto md:h-[65vh] w-full">
-//             {currentGallery?.map((img, idx) => (
+//     <div className="w-full">
+
+//       <div className="grid grid-cols-12">
+
+//         {/* Images */}
+//         <div className="col-span-12 md:col-span-6 p-5 flex gap-4">
+
+//           <div className="flex lg:flex-col gap-3">
+
+//             {currentGallery.map((img, i) => (
 //               <div
-//                 key={idx}
-//                 className={`min-w-32 md:min-w-full cursor-pointer rounded-2xl overflow-hidden border  ${mainImage.url === img.url ? "border-black " : "border-gray-200"}`}
+//                 key={i}
 //                 onClick={() => setMainImage(img)}
+//                 className={`w-20 h-20 border rounded-xl overflow-hidden cursor-pointer
+//                 ${mainImage?.url === img.url
+//                     ? "border-black"
+//                     : "border-gray-300"
+//                   }`}
 //               >
 //                 <img
-//                   className={`object-cover aspect-square  transition duration-150 hover:scale-105 `}
 //                   src={img.url}
-//                   alt={`Thumbnail ${idx}`}
+//                   className="w-full h-full object-cover"
 //                 />
 //               </div>
 //             ))}
+
 //           </div>
 
+//           <div className="flex-1 bg-white rounded-2xl overflow-hidden">
 
-
-//           <div className="col-span-12 lg:col-span-9 order-1 lg:order-2">
 //             <img
-//               src={mainImage ? mainImage.url : productDetail.thumbnail.url}
-//               alt="Main product"
-//               className="w-full h-auto object-cover shadow aspect-square rounded-2xl"
+//               src={
+//                 mainImage?.url ||
+//                 "/images/defaultimage/no-image.jpg"
+//               }
+//               className="w-full h-full object-contain"
 //             />
+
 //           </div>
 //         </div>
 
-//         <div className="col-span-12 lg:col-span-6 flex flex-col justify-between p-4 lg:p-10 space-y-6">
-//           {/* Product Title */}
-//           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{productDetail.title}</h1>
+//         {/* Info */}
+//         <div className="col-span-12 md:col-span-6 p-5 flex flex-col gap-6">
 
-//           {/* Price & Discount */}
-//           <div className="flex items-center gap-4">
-//             <p className="text-2xl font-semibold text-black">₹{currentVariant?.price}</p>
-//             {currentVariant?.mrp && (
-//               <p className="text-lg text-gray-400 line-through">₹{currentVariant?.mrp}</p>
-//             )}
-//             <Badge className="bg-red-100 text-red-600 px-2 py-1 rounded">-40%</Badge>
-//           </div>
+//           <h1 className="text-3xl font-bold">
+//             {productDetail.title}
+//           </h1>
 
-//           {/* Product Description */}
-//           {/* Uncomment if needed */}
-//           {/* <p className="text-gray-700">{productDetail.description}</p> */}
+//           {/* Price */}
+//           {currentVariant ? (
+//             <div className="flex gap-3 items-center">
 
-//           <div className="border-b border-gray-300"></div>
+//               <p className="text-3xl font-bold text-green-700">
+//                 ₹{currentVariant.price}
+//               </p>
 
-//           {/* Color Selector */}
+//               {currentVariant.mrp > currentVariant.price && (
+//                 <>
+//                   <p className="line-through text-gray-500">
+//                     ₹{currentVariant.mrp}
+//                   </p>
+
+//                   <Badge type="discount">
+//                     {Math.round(
+//                       ((currentVariant.mrp -
+//                         currentVariant.price) /
+//                         currentVariant.mrp) *
+//                       100
+//                     )}% OFF
+//                   </Badge>
+//                 </>
+//               )}
+
+//             </div>
+//           ) : (
+//             <p>Select size</p>
+//           )}
+
+//           {/* Colors */}
 //           <div>
-//             {productDetail.allColors.length > 1 && (
-//               <div>
-//                 <p className="pb-2 text-sm font-medium text-gray-500">Select Color</p>
-//                 <div className="flex gap-3">
-//                   {productDetail.allColors.map((color, idx) => (
-//                     <div
-//                       key={idx}
-//                       onClick={() => handleColorChange(color.colorName)}
-//                       className={`cursor-pointer px-3 py-1 rounded-full border transition-all duration-200 ${selectedColor.toLowerCase() === color.colorName.toLowerCase()
-//                         ? "border-blue-500 bg-blue-50 text-blue-600 font-semibold shadow-md"
-//                         : "border-gray-200 hover:border-gray-400 hover:bg-gray-100"
-//                         }`}
-//                     >
-//                       {color.colorName}
-//                     </div>
-//                   ))}
-//                 </div>
-//                 <div className="border-b border-gray-300"></div>
-//               </div>
-//             )}
+//             <p className="font-medium mb-2">Select Color</p>
 
-//           </div>
+//             <div className="flex gap-3 flex-wrap">
 
+//               {productDetail.allColors.map((c, i) => {
 
-//           {/* Size Selector */}
-//           <div>
-//             <p className="pb-2 text-sm font-medium text-gray-500">Select Size</p>
-//             <div className="flex gap-3">
-//               {allVariantOfAColor.map((variant, idx) => {
-//                 const isSelected = currentVariant?.size.sizeValue.toLowerCase() === variant.size.sizeValue.toLowerCase();
-//                 const isOutOfStock = variant.quantity === 0;
+//                 const active =
+//                   normalize(c.colorName) ===
+//                   normalize(selectedColor);
 
 //                 return (
 //                   <div
-//                     key={idx}
-//                     onClick={() => !isOutOfStock && setSelectedSize(variant.size)}
-//                     className={`cursor-pointer px-3 py-1 rounded-full border transition-all duration-200
-//         ${isSelected ? "border-blue-500 bg-blue-50 text-blue-600 font-semibold shadow-md" : ""}
-//         ${!isSelected && !isOutOfStock ? "border-gray-200 hover:border-gray-400 hover:bg-gray-100" : ""}
-//         ${isOutOfStock ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed" : ""}
-//       `}
+//                     key={i}
+//                     onClick={() =>
+//                       c.inStock &&
+//                       handleColorChange(c.colorName)
+//                     }
+//                     className={`w-8 h-8 rounded-full border
+//                     ${active
+//                         ? "border-black scale-110"
+//                         : "border-gray-300"
+//                       }
+//                     ${c.inStock
+//                         ? "cursor-pointer"
+//                         : "opacity-30"
+//                       }`}
+//                     style={{
+//                       backgroundColor: c.colorHex
+//                     }}
+//                   />
+//                 );
+//               })}
+
+//             </div>
+//           </div>
+
+//           {/* Sizes */}
+//           <div>
+//             <p className="font-medium mb-2">Select Size</p>
+
+//             <div className="flex gap-3 flex-wrap">
+
+//               {allVariantOfAColor.map((v, i) => {
+
+//                 const active =
+//                   selectedSize?.sizeValue ===
+//                   v.size.sizeValue;
+
+//                 return (
+//                   <div
+//                     key={i}
+//                     onClick={() =>
+//                       v.quantity > 0 &&
+//                       setSelectedSize(v.size)
+//                     }
+//                     className={`px-4 py-1 border rounded
+//                     ${active
+//                         ? "bg-black text-white"
+//                         : "border-gray-300"
+//                       }
+//                     ${v.quantity === 0
+//                         ? "opacity-40"
+//                         : "cursor-pointer"
+//                       }`}
 //                   >
-//                     {variant.size.sizeName} {isOutOfStock && "(Out of Stock)"}
+//                     {v.size.sizeValue}
 //                   </div>
 //                 );
 //               })}
 
-
 //             </div>
 //           </div>
 
-//           <div className="border-b border-gray-300"></div>
+//           {/* Buttons */}
+//           <div className="flex gap-4">
 
-//           {/* Quantity + Add to Cart */}
-//           <div className="flex flex-wrap items-center gap-4">
-//             <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-//               <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all">-</button>
-//               <span className="px-6 py-2">{1}</span>
-//               <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all">+</button>
-//             </div>
-//             <button className="flex-1 py-3 px-6 bg-black text-white font-semibold rounded-full hover:bg-gray-900 transition-colors">
-//               Add to Cart
+//             <button
+//               onClick={handleBuyNow}
+//               className="flex-1 bg-[#E8D1C5] py-3 rounded-full"
+//             >
+//               Buy Now
 //             </button>
-//           </div>
-//         </div>
 
+//             <button
+//               onClick={handleAddToCart}
+//               className="flex-1 bg-black text-white py-3 rounded-full"
+//             >
+//               Add To Cart
+//             </button>
 
-//       </div>}
-//       {/* product reviews */}
-//       <div className="">
-//         <div className="grid grid-cols-3">
-//           <span className="text-center p-3 border-b border-b-brand-200/60">
-//             Product Details
-//           </span>
-//           <span className="text-center p-3 border-b-4 border-black/60">
-//             Rating & Reviews
-//           </span>
-//           <span className="text-center p-3 border-b border-b-brand-200/60">
-//             FAQs
-//           </span>
-//         </div>
-//         <div className="flex justify-between my-5">
-//           <div className="space-x-2">
-//             <span className="text-xl font-bold">All Reviews</span>
-//             <span>(562)</span>
 //           </div>
-//           <div className="flex gap-3">
-//             <div className="py-2 px-5 bg-gray-200 rounded-full">f</div>
-//             <div className="py-2 px-5 bg-gray-200 rounded-full">Latest </div>
-//             <div className="py-2 px-5 bg-black text-white rounded-full">
-//               Write a Review
-//             </div>
-//           </div>
-//         </div>
 
-//         <div className="m-10">
-//           <div className="grid grid-cols-12 gap-4 py-5">
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//             <div className="col-span-12 lg:col-span-6 space-y-3 border border-gray-200 p-5 rounded-xl">
-//               <div>⭐️⭐️⭐️⭐️⭐️</div>
-//               <p className="text-md font-bold">name</p>
-//               <p>
-//                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-//                 ut illo, eveniet minus ad possimus ullam aspernatur ab porro
-//                 deserunt!
-//               </p>
-//               <p>date</p>
-//             </div>
-//           </div>
-//           <button className="py-2 px-10 block border mx-auto border-gray-200 rounded-full">
-//             Load More Reviews
-//           </button>
-//         </div>
-
-//         <div className=" my-6  rounded-lg ">
-//           <NewArrivals />
 //         </div>
 //       </div>
 //     </div>
@@ -812,6 +485,524 @@ export default Product;
 
 
 
+
+
+
+
+
+
+import Badge from "../../components/common/ui/badge/Badge";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import api from "../../config/apiUser";
+import ProductSkeleton from "../../components/user/loadingSkeleton/ProductSkeleton";
+import useScrollToTop from "../../hooks/useScrollToTop";
+import { useSelector, useDispatch } from "react-redux";
+import { setIsAuthModalOpen, setUserData } from "../../redux/userSlice";
+
+function Product() {
+  /* ================= HELPERS ================= */
+  const normalize = str => (str ? str.trim().toLowerCase() : "");
+
+
+  const { isAuthenticated, userData } = useSelector(state => state.user);
+
+  const { productId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  /* ================= STATES ================= */
+
+  const [productDetail, setProductDetail] = useState(null);
+
+  const [selectedColor, setSelectedColor] = useState(
+    searchParams.get("color") || ""
+  );
+
+  
+  const [selectedSize, setSelectedSize] = useState("");
+  const urlSize = normalize(searchParams.get("size"));
+
+  const [currentGallery, setCurrentGallery] = useState([]);
+  const [mainImage, setMainImage] = useState(null);
+
+  const [allVariantOfAColor, setAllVariantOfAColor] = useState([]);
+  const [currentVariant, setCurrentVariant] = useState(null);
+
+  const [galleryCache, setGalleryCache] = useState({});
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  
+
+  /* ================= API ================= */
+
+  const getProductDetails = async () => {
+    try {
+      const res = await api.get(`/products/${productId}`);
+      setProductDetail(res.data.data);
+    } catch (err) {
+      console.error("Product fetch error:", err);
+    }
+  };
+
+  const getColorGallery = async (colorId) => {
+    try {
+      // Cache first
+      if (galleryCache[colorId]) {
+        const cached = galleryCache[colorId];
+        setCurrentGallery(cached);
+        setMainImage(cached[0] || null);
+        return;
+      }
+
+      const res = await api.get(
+        `/products/${productId}/color-gallery/${colorId}`
+      );
+
+      const gallery = res.data.data.gallery || [];
+
+      setGalleryCache(prev => ({
+        ...prev,
+        [colorId]: gallery
+      }));
+
+      setCurrentGallery(gallery);
+      setMainImage(gallery[0] || null);
+
+    } catch (err) {
+      console.error("Gallery error:", err);
+    }
+  };
+
+  /* ================= COLOR CLICK ================= */
+
+  const handleColorChange = (colorName) => {
+    setSelectedColor(colorName);
+
+    // Update URL (replace so back works)
+    setSearchParams(
+      { color: colorName },
+      { replace: true }
+    );
+  };
+
+  /* ================= FETCH PRODUCT ================= */
+
+  useEffect(() => {
+    setIsInitialLoad(true);
+    getProductDetails();
+  }, [productId]);
+
+  /* ================= INITIAL SETUP ================= */
+
+  useEffect(() => {
+    if (!productDetail) return;
+
+    const urlColor = normalize(searchParams.get("color"));
+
+    let finalVariant = null;
+    let finalColor = "";
+
+    /* 1️⃣ URL priority (NO stock check) */
+    if (urlColor) {
+      const matches = productDetail.variants.filter(
+        v =>
+          normalize(v.color.colorName) === urlColor
+      );
+
+      if (matches.length) {
+        finalVariant = matches[0];
+        finalColor = matches[0].color.colorName;
+      }
+    }
+
+    /* 2️⃣ Default */
+    if (!finalVariant) {
+      if (productDetail.defaultVariant) {
+        finalVariant = productDetail.defaultVariant;
+        finalColor =
+          productDetail.defaultVariant.color?.colorName || "";
+      } else {
+        finalVariant = productDetail.variants[0];
+        finalColor = finalVariant.color?.colorName || "";
+      }
+    }
+
+    if (!finalVariant) return;
+
+    /* Variants of this color */
+    const colorVariants = productDetail.variants.filter(
+      v =>
+        normalize(v.color.colorName) ===
+        normalize(finalColor)
+    );
+
+    setSelectedColor(finalColor);
+    setAllVariantOfAColor(colorVariants);
+    setSelectedSize("");
+    setCurrentVariant(null);
+
+    /* Initial gallery */
+    if (isInitialLoad) {
+
+      const hasUrlColor = !!searchParams.get("color");
+
+      // If URL has color → always fetch that gallery
+      if (hasUrlColor) {
+        getColorGallery(finalVariant.color._id);
+      }
+
+      // Else use backend default
+      else if (productDetail.defaultGallery?.length) {
+        setCurrentGallery(productDetail.defaultGallery);
+        setMainImage(productDetail.defaultGallery[0]);
+      }
+
+      // Else fallback
+      else {
+        getColorGallery(finalVariant.color._id);
+      }
+
+      setIsInitialLoad(false);
+    }
+
+
+  }, [productDetail, searchParams]);
+
+  /* ================= FETCH ON COLOR CHANGE ================= */
+
+  useEffect(() => {
+    if (!productDetail || !selectedColor) return;
+
+    const colorObj = productDetail.allColors.find(
+      c =>
+        normalize(c.colorName) ===
+        normalize(selectedColor)
+    );
+
+    if (!colorObj) return;
+
+    getColorGallery(colorObj._id);
+
+  }, [selectedColor]);
+
+  /* ================= AUTO SIZE ================= */
+
+  useEffect(() => {
+    if (!allVariantOfAColor.length) return;
+
+    // 1️⃣ If URL has size → try match by sizeName
+    if (urlSize) {
+      const matched = allVariantOfAColor.find(
+        v =>
+          normalize(v.size.sizeName) === urlSize
+      );
+
+      if (matched) {
+        setSelectedSize(matched.size);
+        setCurrentVariant(matched);
+        return;
+      }
+    }
+
+    // 2️⃣ Else → select first in-stock
+    const firstInStock = allVariantOfAColor.find(
+      v => v.quantity > 0
+    );
+
+    if (firstInStock) {
+      setSelectedSize(firstInStock.size);
+      setCurrentVariant(firstInStock);
+    }
+
+  }, [allVariantOfAColor, urlSize]);
+
+
+  /* ================= SIZE SELECT ================= */
+
+  useEffect(() => {
+    if (!selectedSize) return;
+
+    const variant = allVariantOfAColor.find(
+      v =>
+        normalize(v.size.sizeName) ===
+        normalize(selectedSize.sizeName)
+    );
+
+    if (variant) setCurrentVariant(variant);
+
+  }, [selectedSize]);
+
+
+  /* ================= CART ================= */
+
+  const addItemToCartGuest = () => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const found = cart.find(
+      i =>
+        i.productId === productId &&
+        i.variantId === currentVariant._id
+    );
+
+    if (found) found.quantity++;
+    else {
+      cart.push({
+        productId,
+        variantId: currentVariant._id,
+        quantity: 1
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    const count = cart.reduce((t, i) => t + i.quantity, 0);
+
+    dispatch(setUserData({ ...userData, cartCount: count }));
+  };
+
+  const addItemToCartUser = async () => {
+    const res = await api.post("/cart/items", {
+      productId,
+      variantId: currentVariant._id,
+      quantity: 1
+    });
+
+    dispatch(
+      setUserData({
+        ...userData,
+        cartCount: res.data.data.cartCount
+      })
+    );
+  };
+
+  const handleAddToCart = () => {
+    if (!currentVariant) return;
+
+    if (isAuthenticated) addItemToCartUser();
+    else addItemToCartGuest();
+  };
+
+  const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      dispatch(setIsAuthModalOpen(true));
+      return;
+    }
+
+    const data = {
+      productId,
+      variantId: currentVariant._id,
+      quantity: 1
+    };
+
+    sessionStorage.setItem(
+      "checkout_buy_now",
+      JSON.stringify(data)
+    );
+
+    navigate("/checkout?type=BUY_NOW", { state: data });
+  };
+
+  useScrollToTop();
+
+  /* ================= LOADING ================= */
+
+  if (!productDetail) return <ProductSkeleton />;
+
+  /* ================= UI ================= */
+
+  return (
+    <div className="w-full">
+
+      <div className="grid grid-cols-12">
+
+        {/* Images */}
+        <div className="col-span-12 md:col-span-6 p-5 flex gap-4">
+
+          <div className="flex lg:flex-col gap-3">
+
+            {currentGallery.map((img, i) => (
+              <div
+                key={i}
+                onClick={() => setMainImage(img)}
+                className={`w-20 h-20 border rounded-xl overflow-hidden cursor-pointer
+                ${mainImage?.url === img.url
+                    ? "border-black"
+                    : "border-gray-300"
+                  }`}
+              >
+                <img
+                  src={img.url}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+
+          </div>
+
+          <div className="flex-1 bg-white rounded-2xl overflow-hidden">
+
+            <img
+              src={
+                mainImage?.url ||
+                "/images/defaultimage/no-image.jpg"
+              }
+              className="w-full h-full object-contain"
+            />
+
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="col-span-12 md:col-span-6 p-5 flex flex-col gap-6">
+
+          <h1 className="text-3xl font-bold">
+            {productDetail.title}
+          </h1>
+
+          {/* Price */}
+          {currentVariant ? (
+            <div className="flex gap-3 items-center">
+
+              <p className="text-3xl font-bold text-green-700">
+                ₹{currentVariant.price}
+              </p>
+
+              {currentVariant.mrp > currentVariant.price && (
+                <>
+                  <p className="line-through text-gray-500">
+                    ₹{currentVariant.mrp}
+                  </p>
+
+                  <Badge type="discount">
+                    {Math.round(
+                      ((currentVariant.mrp -
+                        currentVariant.price) /
+                        currentVariant.mrp) *
+                      100
+                    )}% OFF
+                  </Badge>
+                </>
+              )}
+
+            </div>
+          ) : (
+            <p>Select size</p>
+          )}
+
+          {/* Colors */}
+          <div>
+            <p className="font-medium mb-2">Select Color</p>
+
+            <div className="flex gap-3 flex-wrap">
+
+              {productDetail.allColors.map((c, i) => {
+
+                const active =
+                  normalize(c.colorName) ===
+                  normalize(selectedColor);
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() =>
+                      c.inStock &&
+                      handleColorChange(c.colorName)
+                    }
+                    className={`w-8 h-8 rounded-full border
+                    ${active
+                        ? "border-black scale-110"
+                        : "border-gray-300"
+                      }
+                    ${c.inStock
+                        ? "cursor-pointer"
+                        : "opacity-30"
+                      }`}
+                    style={{
+                      backgroundColor: c.colorHex
+                    }}
+                  />
+                );
+              })}
+
+            </div>
+          </div>
+
+          {/* Sizes */}
+          <div>
+            <p className="font-medium mb-2">Select Size</p>
+
+            <div className="flex gap-3 flex-wrap">
+
+              {allVariantOfAColor.map((v, i) => {
+
+                const active =
+                  selectedSize?.sizeValue ===
+                  v.size.sizeValue;
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      if (v.quantity === 0) return;
+
+                      setSelectedSize(v.size);
+
+                      setSearchParams(prev => {
+                        const p = new URLSearchParams(prev);
+                        p.set("size", v.size.sizeName); // 👈 use sizeName
+                        return p;
+                      }, { replace: true });
+                    }}
+
+                    className={`px-4 py-1 border rounded
+                    ${active
+                        ? "bg-black text-white"
+                        : "border-gray-300"
+                      }
+                    ${v.quantity === 0
+                        ? "opacity-40"
+                        : "cursor-pointer"
+                      }`}
+                  >
+                    {v.size.sizeValue}
+                  </div>
+                );
+              })}
+
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-4">
+
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 bg-[#E8D1C5] py-3 rounded-full"
+            >
+              Buy Now
+            </button>
+
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 bg-black text-white py-3 rounded-full"
+            >
+              Add To Cart
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Product;
 
 
 

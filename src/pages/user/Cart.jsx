@@ -39,7 +39,8 @@ function Cart() {
       const res = await api.get("/cart");
       setCartData(res.data.data.cart);
       setCartSummary(res.data.data.cartSummary);
-      // console.log("user cart details ", res.data.data);
+      console.log("user cart details ", res.data.data);
+
     } catch (error) {
       console.error("Error fething user cart", error);
     }
@@ -62,7 +63,7 @@ function Cart() {
     setCartUpdated(Date.now());
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("cartCount", cart.length);
+
 
   }
 
@@ -73,6 +74,7 @@ function Cart() {
         type
       })
       setCartUpdated(Date.now());
+      dispatch(setUserData({ ...userData, cartCount: res.data.cart.cartCount }));
       console.log("user cart update response", res.data);
     } catch (error) {
       console.error("Error updating user cart", error);

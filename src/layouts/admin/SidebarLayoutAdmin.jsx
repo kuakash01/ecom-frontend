@@ -132,7 +132,7 @@ function SidebarLayoutAdmin() {
 
   return (
     <div
-      className={`h-screen min-w-[60px] flex flex-col bg-admin-light-500 dark:bg-admin-dark-800 border-r border-gray-200 dark:border-gray-500 text-black dark:text-white relative z-50 transition-all duration-300`}
+      className={`h-screen min-w-[60px] flex flex-col bg-admin-light-500 dark:bg-admin-dark-800 border-r border-gray-200 dark:border-gray-500 text-black dark:text-white relative transition-all duration-300 `}
 
     >
       {!isMobileOpen && (

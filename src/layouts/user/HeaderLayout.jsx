@@ -7,7 +7,7 @@ import { setIsAuthModalOpen } from "../../redux/userSlice";
 import api from "../../config/apiUser";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import { CartIcon } from "../../icons"
+import { CartIcon, HamBurgerOpenIcon, HamBurgerCloseIcon } from "../../icons"
 
 
 function Navbar({ categories, onSelect, onHover, }) {
@@ -45,7 +45,7 @@ function Navbar({ categories, onSelect, onHover, }) {
 
 
 function MegaPanel({ category, onSelect }) {
-  if (!category) return null;
+  if (!category || !category.children || category.children.length === 0) return null;
 
   return (
     <div
@@ -124,6 +124,7 @@ const HeaderLayout = () => {
   const isMobileOpen = useSelector((state) => state.theme.isMobileOpen);
   const [categoryTree, setCategoryTree] = useState([]);
   const { userData, isAuthenticated } = useSelector((state) => state.user);
+  const { isSidebarOpen } = useSelector((state) => state.theme);
 
   const getCategoryTree = async () => {
     try {
@@ -146,11 +147,11 @@ const HeaderLayout = () => {
         {isMobileOpen && (
           <div className="flex">
             <button
-              className="cursor-pointer"
+              className="cursor-pointer ml-2"
               type="button"
               onClick={() => dispatch(toggleSidebar())}
             >
-              menu
+              {isSidebarOpen? <HamBurgerOpenIcon className="text-xl"/>:<HamBurgerCloseIcon className="text-xl"/>}
             </button>
             <Link to="/">
               <div className="flex items-center">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Select from "../Select";
-import MultiSelect from "../MultiSelect";
+import SearchSelect from "../SearchSelect";
 
 export default function SelectInputs() {
   const options = [
@@ -38,7 +38,7 @@ export default function SelectInputs() {
           />
         </div>
         <div>
-          <MultiSelect
+          <SearchSelect
             label="Multiple Select Options"
             options={multiOptions}
             defaultSelected={["1", "3"]}

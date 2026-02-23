@@ -4,7 +4,6 @@ import Label from "../../common/form/Label";
 import Input from "../../common/form/input/InputField";
 import Textarea from "../../common/form/input/TextArea";
 import Select from "../../common/form/Select";
-import MultiSelect from "../../common/form/MultiSelect";
 
 
 import { useForm, Controller } from "react-hook-form";
@@ -35,7 +34,7 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
 
   const onSubmit = async (data) => {
     setResponseLoading(true);
-    const toastId = toast.loading(editProduct ? "Updating Product..." : "Adding Product...");
+    const toastId = toast.loading("Updating Product...");
     console.log("data", currentEditId);
     try {
       const formData = new FormData();
@@ -87,23 +86,21 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
       }
 
 
-      const url = editProduct
-        ? `/admin/products/${currentEditId}`
-        : `/admin/products`;
+      const url =  `/admin/products/${currentEditId}`;
 
-      const method = editProduct ? "patch" : "post";
+      const method = "patch";
 
-      // await api[method](url, formData);
+      await api[method](url, formData);
 
       toast.update(toastId, {
-        render: editProduct ? "Product Updated" : "Product Added",
+        render: "Product Updated",
         type: "success",
         isLoading: false,
         autoClose: 2000,
       });
 
       handleCloseModal();
-      revalidator.revalidate();
+      setMode("list");
     } catch (err) {
       console.error("Error:", err);
       toast.update(toastId, {
@@ -132,7 +129,6 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
 
 
   const handleCloseModal = () => {
-    setAddNewProduct(false);
     setCategoryLevels([]); // clear out old category data
     reset();
   };
@@ -181,13 +177,13 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
     dispatch(setLoading(true));
 
     try {
-      const categoryExistRes = await safeGet(`admin/categories/${product.category}/exist`);
+      const categoryExistRes = await safeGet(`admin/categories/${product.category._id}/exist`);
       let updatedLevels = [];
       let categoryData = {};
 
       if (categoryExistRes && categoryExistRes.data.isPresent) {
         // Fetch full category chain if exists
-        const chainRes = await api.get(`/admin/categories/${product.category}/chain`);
+        const chainRes = await api.get(`/admin/categories/${product.category._id}/chain`);
         const chain = chainRes.data.data;
 
         for (let i = 0; i < chain.length; i++) {

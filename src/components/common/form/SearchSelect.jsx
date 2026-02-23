@@ -271,7 +271,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const MultiSelect = ({
+const SearchSelect = ({
   label,
   options,
   defaultSelected = [],
@@ -282,8 +282,16 @@ const MultiSelect = ({
   error = false,
   success = false,
   hint,
+  multiple = false, 
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState(defaultSelected);
+  const [selectedOptions, setSelectedOptions] = useState(
+    multiple
+      ? defaultSelected
+      : defaultSelected.length
+        ? [defaultSelected[0]]
+        : []
+  );
+
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const [searchText, setSearchText] = useState("");
@@ -310,13 +318,25 @@ const MultiSelect = ({
   };
 
   const handleSelect = (optionValue) => {
-    const newSelectedOptions = selectedOptions.includes(optionValue)
-      ? selectedOptions.filter((value) => value !== optionValue)
-      : [...selectedOptions, optionValue];
+
+    let newSelectedOptions;
+
+    if (multiple) {
+
+      newSelectedOptions = selectedOptions.includes(optionValue)
+        ? selectedOptions.filter(v => v !== optionValue)
+        : [...selectedOptions, optionValue];
+
+    } else {
+
+      newSelectedOptions = [optionValue];
+      setIsOpen(false); // close on select
+    }
 
     setSelectedOptions(newSelectedOptions);
-    onChange?.(newSelectedOptions);
+    onChange?.(multiple ? newSelectedOptions : newSelectedOptions[0]);
   };
+
 
   const removeOption = (value) => {
     const newSelectedOptions = selectedOptions.filter((opt) => opt !== value);
@@ -324,9 +344,13 @@ const MultiSelect = ({
     onChange?.(newSelectedOptions);
   };
 
-  const selectedValuesLabel = selectedOptions.map(
-    (value) => options.find((option) => option.value === value)?.label || ""
-  );
+  const selectedValuesLabel = selectedOptions
+    .map(
+      value =>
+        options.find(opt => opt.value === value)?.label || ""
+    )
+    .filter(Boolean);
+
 
 
 
@@ -371,10 +395,10 @@ const MultiSelect = ({
   return (
     <div className="w-full">
       <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-        {label}
+        {label} 
       </label>
 
-      <div className={`relative z-20 inline-block w-full`}>
+      <div className={`relative  inline-block w-full`}>
         <div ref={containerRef} className="relative flex flex-col items-center w-full">
           <div onClick={toggleDropdown} className="w-full">
 
@@ -383,38 +407,39 @@ const MultiSelect = ({
 
               <div className="flex flex-wrap h-fit flex-auto gap-1">
                 {selectedValuesLabel.length > 0 ? (
-                  selectedValuesLabel.map((label, index) => (
-                    <div
-                      key={index}
-                      className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
-                    >
-                      <span className="flex-initial max-w-full">{label}</span>
-                      <div className="flex flex-row-reverse flex-auto">
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeOption(selectedOptions[index]);
-                          }}
-                          className="pl-2 text-gray-500 cursor-pointer group-hover:text-gray-400 dark:text-gray-400"
-                        >
-                          <svg
-                            className="fill-current"
-                            role="button"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            xmlns="http://www.w3.org/2000/svg"
+                  (multiple ? selectedValuesLabel : selectedValuesLabel.slice(0, 1))
+                    .map((label, index) => (
+                      <div
+                        key={index}
+                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
+                      >
+                        <span className="flex-initial max-w-full">{label}</span>
+                        <div className="flex flex-row-reverse flex-auto">
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeOption(selectedOptions[index]);
+                            }}
+                            className="pl-2 text-gray-500 cursor-pointer group-hover:text-gray-400 dark:text-gray-400"
                           >
-                            <path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
-                            />
-                          </svg>
+                            <svg
+                              className="fill-current"
+                              role="button"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 14 14"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                clipRule="evenodd"
+                                d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
+                              />
+                            </svg>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 ) : (
                   <input
                     placeholder={placeholder}
@@ -431,8 +456,13 @@ const MultiSelect = ({
                   className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!disabled) setSelectedOptions([]); onChange?.([]);
+
+                    if (!disabled) {
+                      setSelectedOptions([]);
+                      onChange?.(multiple ? [] : null);
+                    }
                   }}
+
                 >
                   <svg
                     className="fill-current"
@@ -481,7 +511,7 @@ const MultiSelect = ({
 
           {isOpen && (
             <div
-              className="absolute left-0 z-40 w-full overflow-y-auto bg-white rounded-lg shadow-sm top-full max-h-select dark:bg-gray-900"
+              className="absolute left-0 z-[9999] w-full overflow-y-auto bg-white rounded-lg shadow-sm top-full max-h-select dark:bg-gray-900"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white dark:bg-gray-900 p-2 border-b border-gray-200 dark:border-gray-800">
@@ -510,11 +540,11 @@ const MultiSelect = ({
                 </div>
               </div>
 
-              <div className="flex flex-col h-auto max-h-60 overflow-y-auto">
+              <div className="flex flex-col h-auto max-h-60 overflow-y-auto bg-white">
                 {filteredOptions.map((option, index) => (
                   <div
                     key={index}
-                    className="hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800"
+                    className="hover:bg-primary/5  bg-white w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800"
                     onClick={() => { setSearchText(""); handleSelect(option.value); }}
                   >
                     <div
@@ -552,4 +582,4 @@ const MultiSelect = ({
   );
 };
 
-export default MultiSelect;
+export default SearchSelect;
