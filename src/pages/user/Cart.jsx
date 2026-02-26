@@ -7,26 +7,26 @@ import { setIsAuthModalOpen } from "../../redux/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { setUserData } from "../../redux/userSlice";
 import CartSkeleton from "../../components/user/loadingSkeleton/CartSkeleton";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 
 function Cart() {
   const { isAuthenticated, userData } = useSelector(state => state.user);
   const [cartData, setCartData] = useState([]);
   const [cartSummary, setCartSummary] = useState({});
-  const [cartUpdated, setCartUpdated] = useState("")
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   const getCartGuest = async () => {
     try {
-      setLoading(true);
+
 
       const localCart = JSON.parse(localStorage.getItem("cart")) || [];
 
       if (localCart.length === 0) {
         setCartData([]);
-        setLoading(false);
+
         return;
       }
 
@@ -44,28 +44,25 @@ function Cart() {
 
     } catch (error) {
       console.error("Error fetching guest cart", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const getCartUser = async () => {
     try {
-      setLoading(true);
+
 
       const res = await api.get("/cart");
 
       setCartData(res.data.data.cart);
       setCartSummary(res.data.data.cartSummary);
+      console.log("user cart response", res.data);
 
     } catch (error) {
       console.error("Error fetching user cart", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleUpdateQuantityLocal = (productId, variantId, type) => {
+  const handleUpdateQuantityLocal = async (productId, variantId, type) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     const existing = cart.find(
@@ -79,7 +76,7 @@ function Cart() {
         existing.quantity--;
     }
 
-    setCartUpdated(Date.now());
+    await getCartGuest();
 
     localStorage.setItem("cart", JSON.stringify(cart));
 
@@ -92,7 +89,7 @@ function Cart() {
         quantity,
         type
       })
-      setCartUpdated(Date.now());
+      await getCartUser();
       dispatch(setUserData({ ...userData, cartCount: res.data.cart.cartCount }));
       console.log("user cart update response", res.data);
     } catch (error) {
@@ -101,13 +98,13 @@ function Cart() {
   }
 
 
-  const handleDeleteItemGuest = (productId, variantId) => {
+  const handleDeleteItemGuest = async (productId, variantId) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     const updatedCart = cart.filter(
       item => item.variantId !== variantId
     );
-    setCartUpdated(Date.now());
+    await getCartGuest();
 
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     localStorage.setItem("cartCount", cart.length);
@@ -115,7 +112,7 @@ function Cart() {
   const handleDeleteItemUser = async (cartItemId) => {
     try {
       const res = await api.delete(`/cart/items/${cartItemId}`);
-      setCartUpdated(Date.now());
+      await getCartUser();
     } catch (error) {
       console.error("error deleting user cart item", error);
     }
@@ -131,14 +128,28 @@ function Cart() {
     // navigate("/checkout", { state: { type: 'CART' } });
   }
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      getCartUser();
-    } else {
-      getCartGuest();
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      if (isAuthenticated) {
+        await getCartUser();
+      } else {
+        await getCartGuest();
+      }
+    } catch (error) {
+      console.error("Error fetching cart", error);
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, cartUpdated])
 
+  }
+
+  useEffect(() => {
+    fetchCart();
+  }, [isAuthenticated])
+
+  // scroll to top when visiting cart page
+  useScrollToTop();
 
   if (loading) {
     return <CartSkeleton />;
@@ -186,7 +197,9 @@ function Cart() {
                   <div className="flex items-center gap-4">
 
 
-                    <Link to={`../products/${item.productId}`}>
+                    <Link to={`../products/${item.productId}${item.attributes.color ? `?color=${item.attributes.color.colorName}` : ""}`} className="w-24 h-24 flex-shrink-0"
+                    target="_blank"
+                    >
                       <img
                         src={item.mainImage}
                         className="w-24 h-24 object-cover rounded-xl"
@@ -333,7 +346,7 @@ function Cart() {
               <Row
                 label="Discount"
                 value={-cartSummary.discount}
-                red
+                green
               />
 
               <Row
@@ -383,14 +396,14 @@ export default Cart;
 
 
 
-const Row = ({ label, value, red }) => (
+const Row = ({ label, value, green }) => (
   <div className="flex justify-between text-sm">
 
     <span className="text-gray-500">
       {label}
     </span>
 
-    <span className={`font-medium ${red ? "text-red-500" : ""}`}>
+    <span className={`font-medium ${green ? "text-green-500" : ""}`}>
       ₹{Math.abs(value)}
     </span>
 

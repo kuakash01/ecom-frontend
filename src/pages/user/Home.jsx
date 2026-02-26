@@ -5,9 +5,11 @@ import PopularProducts from"../../components/user/product/PopularProducts";
 import NewArrivals from"../../components/user/product/NewArrivals";
 import DressStyle from"../../components/user/home/DressStyle";
 import Reviews from"../../components/user/home/Reviews";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 
 function Home() {
+  useScrollToTop();
   return (
     <div className="grid grid-cols-12 ">
       <div className="col-span-12">

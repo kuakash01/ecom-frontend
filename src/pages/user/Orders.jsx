@@ -108,12 +108,14 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "../../config/apiUser";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 const Orders = () => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useScrollToTop();
 
   const statusClasses = {
     delivered: "bg-green-100 text-green-700",

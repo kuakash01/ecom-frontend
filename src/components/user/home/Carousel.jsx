@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import api from "../../../config/apiUser";
-import { useSelector } from "react-redux";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BannerSkeleton from "../../user/loadingSkeleton/BannerSkeleton";
@@ -8,52 +7,44 @@ import BannerSkeleton from "../../user/loadingSkeleton/BannerSkeleton";
 function Carousel() {
   const [carouselData, setCarouselData] = useState([]);
   const [current, setCurrent] = useState(1);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const { isMobileOpen } = useSelector((state) => state.theme);
-
   const [loading, setLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const navigate = useNavigate();
-
   const sliderRef = useRef(null);
   const intervalRef = useRef(null);
 
-  const TRANSITION_TIME = 800;
+  const TRANSITION_TIME = 700;
   const AUTO_TIME = 4000;
 
+  const isMobile = window.innerWidth < 768;
 
-  // redirect handling
+  // Redirect Handling
   const handleRedirect = (item) => {
     if (!item?.redirectType || !item?.redirectValue) return;
 
     switch (item.redirectType) {
-
       case "product":
         navigate(`/products/${item.redirectValue}`);
         break;
-
       case "category":
         navigate(`/${item.redirectValue}`);
         break;
-
       case "filter":
         navigate(`/shop?${item.redirectValue}`);
         break;
-
       case "landing":
         navigate(`/landing/${item.redirectValue}`);
         break;
-
       case "external":
         window.open(item.redirectValue, "_blank");
         break;
-
       default:
         break;
     }
   };
 
-  // Fetch carousel
+  // Fetch Carousel
   useEffect(() => {
     const fetchCarousel = async () => {
       try {
@@ -70,7 +61,7 @@ function Carousel() {
     fetchCarousel();
   }, []);
 
-  // Extended slides (for infinite effect)
+  // Extended Slides for infinite loop (desktop only)
   const extendedSlides =
     carouselData.length > 0
       ? [
@@ -80,8 +71,9 @@ function Carousel() {
       ]
       : [];
 
-  // Auto play
+  // Auto Slide (Desktop only)
   const startAuto = () => {
+    if (isMobile) return;
     stopAuto();
     intervalRef.current = setInterval(() => {
       nextSlide(true);
@@ -119,8 +111,10 @@ function Carousel() {
     startAuto();
   };
 
-  // Infinite handling
+  // Infinite Handling (Desktop Only)
   useEffect(() => {
+    if (isMobile) return;
+
     const handleTransitionEnd = () => {
       const total = carouselData.length;
 
@@ -143,9 +137,11 @@ function Carousel() {
 
     const slider = sliderRef.current;
     slider?.addEventListener("transitionend", handleTransitionEnd);
+
     return () =>
       slider?.removeEventListener("transitionend", handleTransitionEnd);
-  }, [current, carouselData]);
+  }, [current, carouselData, isMobile]);
+
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -188,83 +184,91 @@ function Carousel() {
     };
   }, [carouselData]);
 
+
   if (!carouselData.length && !loading) return null;
   if (loading) return <BannerSkeleton />;
 
   return (
-    <div className="relative w-full h-full md:h-full overflow-hidden group">
+    <div className="relative w-full overflow-hidden group">
 
-      {/* Slider */}
-      <div
-        ref={sliderRef}
-        className="flex h-full"
-        style={{
-          transform: `translateX(-${current * 100}%)`,
-          transition: `transform ${TRANSITION_TIME}ms ease`,
-        }}
-      >
-        {extendedSlides.map((item, index) => (
+      {/* Mobile Scrollable */}
+      {isMobile ? (
+        <div className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth h-full no-scrollbar">
+          {carouselData.map((item, index) => (
+            <div
+              key={index}
+              className="min-w-full snap-start cursor-pointer"
+              onClick={() => handleRedirect(item)}
+            >
+              <img
+                src={item?.mobileImage?.url}
+                alt="banner"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+
+        </div>
+      ) : (
+        <>
+          {/* Desktop Slider */}
           <div
-            key={index}
-            className="w-full flex-shrink-0 overflow-y-auto cursor-pointer hover:opacity-95 transition"
-            onClick={() => handleRedirect(item)}
+            ref={sliderRef}
+            className="flex w-full h-full"
+            style={{
+              transform: `translateX(-${current * 100}%)`,
+              transition: `transform ${TRANSITION_TIME}ms ease`,
+            }}
           >
-
-            <img
-              src={
-                isMobileOpen
-                  ? item?.mobileImage?.url
-                  : item?.desktopImage?.url
-              }
-              alt="banner"
-              className={`w-full h-full ${isMobileOpen
-                ? "object-contain"
-                : "object-cover"
-                }`}
-            />
+            {extendedSlides.map((item, index) => (
+              <div
+                key={index}
+                className="w-full flex-shrink-0 cursor-pointer"
+                onClick={() => handleRedirect(item)}
+              >
+                <img
+                  src={item?.desktopImage?.url}
+                  alt="banner"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Left Arrow */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 
-                   bg-white/20 backdrop-blur-md
-                   p-2 rounded-full
-                   opacity-0 group-hover:opacity-100
-                   transition-all duration-300
-                   hover:bg-white/40"
-      >
-        <ChevronLeft className="text-white" size={28} />
-      </button>
-
-      {/* Right Arrow */}
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 
-                   bg-white/20 backdrop-blur-md
-                   p-2 rounded-full
-                   opacity-0 group-hover:opacity-100
-                   transition-all duration-300
-                   hover:bg-white/40"
-      >
-        <ChevronRight className="text-white" size={28} />
-      </button>
-
-      {/* Pagination Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
-        {carouselData.map((_, index) => (
+          {/* Arrows */}
           <button
-            key={index}
-            onClick={() => setCurrent(index + 1)}
-            className={`h-2 w-2 rounded-full transition-all duration-300 ${current === index + 1
-              ? "bg-white w-6"
-              : "bg-white/50"
-              }`}
-          />
-        ))}
-      </div>
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 
+                       bg-white/20 backdrop-blur-md p-2 rounded-full
+                       opacity-0 group-hover:opacity-100 transition"
+          >
+            <ChevronLeft className="text-white" size={28} />
+          </button>
+
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 
+                       bg-white/20 backdrop-blur-md p-2 rounded-full
+                       opacity-0 group-hover:opacity-100 transition"
+          >
+            <ChevronRight className="text-white" size={28} />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+            {carouselData.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrent(index + 1)}
+                className={`h-2 w-2 rounded-full transition-all ${current === index + 1
+                    ? "bg-white w-6"
+                    : "bg-white/50"
+                  }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

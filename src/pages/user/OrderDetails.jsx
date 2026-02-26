@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../../config/apiUser";
 import { ArrowPrevIcon } from "../../icons";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 /* ================= MAIN ================= */
 
@@ -26,6 +27,9 @@ const OrderDetails = () => {
     useEffect(() => {
         getOrderDetails();
     }, [orderId]);
+
+
+    useScrollToTop();
 
     if (loading) {
         return (

@@ -4,12 +4,13 @@ import { useLocation, Link, useNavigate, useSearchParams } from "react-router-do
 import { ArrowDownIcon, BinIcon, DiscountIcon } from "../../icons";
 import { useSelector, useDispatch } from "react-redux";
 import { setUserData } from "../../redux/userSlice"
+import CartSkeleton from "../../components/user/loadingSkeleton/CartSkeleton";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 
 
 const Checkout = () => {
   const [previewData, setPreviewData] = useState(null);
-  const [updateFlag, setUpdateFlag] = useState(false);
 
   // Buy Now Checkout Data
   const location = useLocation();
@@ -32,6 +33,7 @@ const Checkout = () => {
     previewData?.address &&
     paymentMode;
 
+  const [pageLoading, setPageLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -40,6 +42,7 @@ const Checkout = () => {
 
   const [searchParams] = useSearchParams();
   const checkoutType = searchParams.get("type");
+
 
   const getPreview = async () => {
     try {
@@ -62,13 +65,13 @@ const Checkout = () => {
   };
   const incrementQty = () => {
     setBuyNowQty(prev => prev + 1);
-    setUpdateFlag(prev => !prev);
+    getPreview();
   };
 
   const decrementQty = () => {
     if (buyNowQty > 1) {
       setBuyNowQty(prev => prev - 1);
-      setUpdateFlag(prev => !prev);
+      getPreview();
     }
   };
 
@@ -78,7 +81,7 @@ const Checkout = () => {
         quantity,
         type
       })
-      setUpdateFlag(!updateFlag);
+      getPreview();
       dispatch(setUserData({ ...userData, cartCount: res.data.cart.cartCount }));
       console.log("user cart update response", res.data);
     } catch (error) {
@@ -146,9 +149,22 @@ const Checkout = () => {
   }, [success]);
 
 
+
   useEffect(() => {
-    getPreview();
-  }, [updateFlag]);
+    (async () => {
+      setPageLoading(true);
+      await getPreview();
+      setPageLoading(false);
+    })()
+  }, []);
+
+
+  useScrollToTop();
+
+
+  if (pageLoading)
+    return <CartSkeleton />
+
 
 
   return (
@@ -190,7 +206,9 @@ const Checkout = () => {
 
                   <div className="flex items-center gap-4">
 
-                    <Link to={`../products/${item.productId}`}>
+                    <Link to={`../products/${item.productId}${item.attributes.color ? `?color=${item.attributes.color.colorName}` : ""}`} className="w-24 h-24 flex-shrink-0"
+                    target="_blank"
+                    >
                       <img
                         src={item.mainImage}
                         className="w-24 h-24 object-cover rounded-xl"
@@ -473,7 +491,7 @@ const Checkout = () => {
               <Row
                 label="Discount"
                 value={-previewData.cartSummary.discount}
-                red
+                green
               />
 
               <Row
@@ -595,14 +613,14 @@ export default Checkout;
 
 
 
-const Row = ({ label, value, red }) => (
+const Row = ({ label, value, green }) => (
   <div className="flex justify-between text-sm">
 
     <span className="text-gray-500">
       {label}
     </span>
 
-    <span className={`font-medium ${red ? "text-red-500" : ""}`}>
+    <span className={`font-medium ${green ? "text-green-500" : ""}`}>
       ₹{Math.abs(value)}
     </span>
 

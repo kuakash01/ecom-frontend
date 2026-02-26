@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../config/apiUser";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 const AddressList = () => {
 
@@ -10,6 +11,8 @@ const AddressList = () => {
 
   const navigate = useNavigate();
 
+  // scroll to top when visiting address page
+  useScrollToTop();
 
   const fetchAddresses = async () => {
     try {

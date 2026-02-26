@@ -1,6 +1,7 @@
 import api from "../../config/apiUser";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import useScrollToTop from "../../hooks/useScrollToTop";
 
 const Profile = () => {
 
@@ -105,6 +106,9 @@ const Profile = () => {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+
+  useScrollToTop();
 
 
   // ================= LOADING =================

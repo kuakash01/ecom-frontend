@@ -8,6 +8,7 @@ import api from "../../config/apiUser";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { CartIcon, HamBurgerOpenIcon, HamBurgerCloseIcon } from "../../icons"
+import Searchbar from "../../components/user/header/Searchbar";
 
 
 function Navbar({ categories, onSelect, onHover, }) {
@@ -145,13 +146,17 @@ const HeaderLayout = () => {
 
       <nav className="flex justify-between items-center dark:bg-brand-dark-500 bg-white text-black dark:text-white shadow-md sticky top-0 z-50 ">
         {isMobileOpen && (
-          <div className="flex">
+          <div className="flex items-center">
             <button
-              className="cursor-pointer ml-2"
               type="button"
               onClick={() => dispatch(toggleSidebar())}
+              className="ml-2 flex items-center justify-center w-10 h-10 rounded-lg bg-transparent active:scale-95 transition-all duration-200  border border-gray-100"
             >
-              {isSidebarOpen? <HamBurgerOpenIcon className="text-xl"/>:<HamBurgerCloseIcon className="text-xl"/>}
+              {isSidebarOpen ? (
+                <HamBurgerOpenIcon className="text-lg text-gray-700" />
+              ) : (
+                <HamBurgerCloseIcon className="text-lg text-gray-700" />
+              )}
             </button>
             <Link to="/">
               <div className="flex items-center">
@@ -168,6 +173,7 @@ const HeaderLayout = () => {
           <NavContainer categories={categoryTree} />
         )}
         <div className="flex gap-4 items-center">
+          <Searchbar />
           <Link to="/cart">
             {/* <CartIcon className="text-2xl" /> */}
             <div className="relative">

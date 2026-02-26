@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { FilterIcon, ArrowDownIcon } from "../../icons";
 import { Range } from "react-range";
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../config/apiUser";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import ProductCard from "../../components/user/product/ProductCard";
 import ShopSkeleton from "../../components/user/loadingSkeleton/ShopSkeleton";
+import NotFound from "../../pages/user/NotFound";
 
 function Shop() {
 
@@ -27,7 +28,10 @@ function Shop() {
   const [params, setParams] = useSearchParams();
 
   const { slug } = useParams();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+
+  const [notFound, setNotFound] = useState(false);
 
 
   /* Filters */
@@ -248,12 +252,52 @@ function Shop() {
   };
 
 
+  const getCategories = async () => {
+
+    try {
+      const res = await api.get("/categories");
+      // console.log("categories", res.data.data);
+      return res.data.data;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+
 
   /* ================= EFFECTS ================= */
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setNotFound(false);
+
+      const categories = await getCategories();
+
+      const isValidCategory =
+        categories?.some((i) => i.slug === slug) || slug === "shop";
+
+      // ❌ If slug not found → show NotFound
+      if (!isValidCategory) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ If valid → fetch data
+      await getFilters();
+      await getProducts();
+
+    } catch (err) {
+      console.error("Error fetching Shop Products:", err);
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getFilters();
-    getProducts();
+    fetchData();
   }, [slug, params]);
 
 
@@ -269,8 +313,12 @@ function Shop() {
     (style ? 1 : 0);
 
 
+  if (notFound) {
+    return <NotFound />;
+  }
 
-  if (loading || !filters) {
+
+  if (loading) {
     return <ShopSkeleton />;
   }
 
@@ -584,9 +632,17 @@ function Shop() {
           <div className="flex justify-between items-center">
 
             <div>
-              <h1 className="text-2xl font-semibold capitalize">
-                {slug}
-              </h1>
+              {params?.get("search") ? (
+                <div className="flex items-end space-x-1.5">
+                  <span className="text-black text-md">Searched for</span>
+                  <h1 className="text-xl font-semibold capitalize">
+                    "{params.get("search")}"
+                  </h1>
+                </div>
+
+              ) : <h1 className="text-xl font-semibold capitalize">
+                    {slug}
+                  </h1>}
 
               <p className="text-sm text-gray-500">
                 {products.length} Products
