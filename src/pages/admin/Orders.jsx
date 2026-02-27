@@ -12,13 +12,15 @@ import {
   TableRow,
   TableCell,
 } from "../../components/common/ui/table";
-import {Trash} from "lucide-react";
+import { Trash } from "lucide-react";
 import { useLoaderData } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-function ManageCategories() {
+function ManageOrders() {
   const [addNewCategory, setAddNewCategory] = useState(false);
   const [loading, setLoading] = useState(false);
   const loaderData = useLoaderData();
+  const navigate = useNavigate();
 
   const {
     control,
@@ -27,12 +29,7 @@ function ManageCategories() {
     formState: { errors },
   } = useForm();
 
-  // Temporary static categories
-  const staticCategories = [
-    { id: 1, name: "Electronics", description: "All electronic items" },
-    { id: 2, name: "Clothing", description: "Men & Women clothing" },
-    { id: 3, name: "Home Appliances", description: "Appliances & furniture" },
-  ];
+
 
   const onSubmit = (values) => {
     console.log("Category Form Submitted: ", values);
@@ -50,7 +47,7 @@ function ManageCategories() {
   };
   useEffect(() => {
     console.log("Loader Data:", loaderData);
-  }, )
+  },)
 
   if (loaderData.status === 'failed') {
     return <div className="text-red-500">{loaderData.message}</div>;
@@ -74,11 +71,11 @@ function ManageCategories() {
           </div>
 
           {/* Table */}
-         <div className="bg-white dark:bg-admin-dark-500 shadow-md rounded-xl border border-gray-200 dark:border-gray-500 overflow-auto mt-4">
+          <div className="bg-white dark:bg-admin-dark-500 shadow-md rounded-xl border border-gray-200 dark:border-gray-500 overflow-auto mt-4">
             <Table className="text-gray-600 w-full">
               <TableHeader className="bg-admin-500 dark:bg-admin-dark-700 border-b border-b order border-gray-200 dark:border-gray-500">
                 <TableRow>
-                  {["Sr. No", "Customer Name", "Email", "Total Amount", "Status", "Order Date", "Action"].map(
+                  {["Sr. No", "Customer Name", "Email", "Total Amount", "Order Status", "Payment Status", "Order Date", "Action"].map(
                     (heading) => (
                       <TableCell
                         key={heading}
@@ -92,41 +89,90 @@ function ManageCategories() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05] text-black dark:text-white">
-                {loaderData.data?.map((item, index) => (
-                  <TableRow
-                    key={item.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <TableCell className="px-6 py-4 text-sm font-medium">
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm">
-                      {item.user.name}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm ">
-                      {item.user.email}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm">
-                      ₹{item.totalAmount}
-                    </TableCell>
-                    <TableCell className={`${item.status === 'pending' ? 'text-yellow-500' : item.status === 'shipped' ? 'text-blue-500' : item.status === 'delivered' ? 'text-green-500' : 'text-red-500'} px-6 py-4 text-sm`}>
-                      {item.status}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm">
-                      <button
-                        onClick={() => handleDeleteCategory(item)}
-                        className="text-red-500 hover:text-red-800 font-medium cursor-pointer"
-                      >
-                        <Trash size={18} className="text-red-500" />
+                {loaderData.data?.map((item, index) => {
 
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                
+                  const orderStatusColors = {
+                    pending: "text-yellow-500",
+                    confirmed: "text-blue-500",
+                    processing: "text-indigo-500",
+                    shipped: "text-purple-500",
+                    delivered: "text-green-600",
+                    cancelled: "text-red-600",
+                    returned: "text-orange-500"
+                  };
+
+                  const paymentStatusColors = {
+                    pending: "text-yellow-500",
+                    paid: "text-green-600",
+                    failed: "text-red-600",
+                    refunded: "text-orange-500"
+                  };
+
+                  return (
+                    <TableRow
+                      key={item._id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      <TableCell className="px-6 py-4 text-sm font-medium">
+                        {index + 1}
+                      </TableCell>
+
+                      <TableCell className="px-6 py-4 text-sm">
+                        {item.user?.name}
+                      </TableCell>
+
+                      <TableCell className="px-6 py-4 text-sm">
+                        {item.user?.email}
+                      </TableCell>
+
+                      <TableCell className="px-6 py-4 text-sm font-semibold">
+                        ₹{item.priceSummary?.total}
+                      </TableCell>
+
+                      {/* Order Status */}
+                      <TableCell
+                        className={`px-6 py-4 text-sm font-medium ${orderStatusColors[item.status]}`}
+                      >
+                        {item.status}
+                      </TableCell>
+
+                      {/* Payment Status */}
+                      <TableCell
+                        className={`px-6 py-4 text-sm font-medium ${paymentStatusColors[item.paymentDetails?.status]}`}
+                      >
+                        {item.paymentDetails?.status}
+                      </TableCell>
+
+                      <TableCell className="px-6 py-4 text-sm">
+                        {new Date(item.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'numeric',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: 'numeric',
+                          second: 'numeric',
+                          hour12: true
+                        })}
+                      </TableCell>
+
+                      <TableCell className="px-6 py-4 text-sm space-x-2">
+                        <button
+                          onClick={() => navigate(`/admin/orders/${item._id}`)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          View
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteOrder(item)}
+                          className="text-red-500 hover:text-red-800"
+                        >
+                          <Trash size={18} />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -204,4 +250,4 @@ function ManageCategories() {
   );
 }
 
-export default ManageCategories;
+export default ManageOrders;

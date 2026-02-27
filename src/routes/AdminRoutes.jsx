@@ -12,6 +12,8 @@ const Orders = lazy(() => import("../pages/admin/Orders"));
 const HomeCarousel = lazy(() => import("../pages/admin/HomeCarousel"));
 const ManageColors = lazy(() => import("../pages/admin/ManageColors"));
 const ManageSizes = lazy(() => import("../pages/admin/ManageSizes"));
+const AnnouncementBar = lazy(() => import("../pages/admin/AnnouncementBar"));
+import ViewOrder from "../pages/admin/ViewOrder";
 
 
 // loders
@@ -92,11 +94,14 @@ const adminRoutes = {
             { path: "products", element: <Products />, loader: ProductsLoader },
             { path: "category", element: <ManageCategories />, loader: CategoriesLoader },
             { path: "orders", element: <Orders />, loader: OrdersLoader },
+            { path: "orders/:id", element: <ViewOrder /> },
             { path: "colors", element: <ManageColors />, loader: ColorsLoader },
             { path: "sizes", element: <ManageSizes />, loader: SizesLoader },
 
 
             { path: "carousel", element: <HomeCarousel />, loader: HomeCarouselLoader },
+            { path: "announcement", element: <AnnouncementBar /> },
+
           ],
         },
       ],

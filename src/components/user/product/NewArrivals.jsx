@@ -36,22 +36,35 @@ function NewArrivals() {
 
 
   /* ================= CHECK OVERFLOW ================= */
-
   useEffect(() => {
-    if (!scrollRef.current) return;
-
     const el = scrollRef.current;
+    if (!el) return;
 
     const checkOverflow = () => {
-      setShowArrows(el.scrollWidth > el.clientWidth);
+      const containerWidth = el.clientWidth;
+
+      // Detect card width dynamically
+      const firstCard = el.querySelector(".flex-shrink-0");
+      if (!firstCard) return;
+
+      const cardWidth = firstCard.offsetWidth;
+      const gap = 24; // gap-6
+
+      const totalCards = newArrivals.length + 1; // +1 for Explore More
+
+      const visibleCapacity = Math.floor(
+        containerWidth / (cardWidth + gap)
+      );
+
+      setShowArrows(totalCards > visibleCapacity);
     };
 
-    checkOverflow();
-
+    requestAnimationFrame(checkOverflow);
     window.addEventListener("resize", checkOverflow);
 
-    return () => window.removeEventListener("resize", checkOverflow);
-
+    return () => {
+      window.removeEventListener("resize", checkOverflow);
+    };
   }, [newArrivals]);
 
 
@@ -60,7 +73,7 @@ function NewArrivals() {
   const scroll = (dir) => {
     if (!scrollRef.current) return;
 
-    const cardWidth = 260 + 24; // card + gap
+    const cardWidth = 220 + 24; // card + gap
 
     scrollRef.current.scrollBy({
       left: dir === "left" ? -cardWidth : cardWidth,
@@ -161,7 +174,7 @@ function NewArrivals() {
                 overflow-x-auto scroll-smooth
                 pb-4 hide-scrollbar
 
-                mx-auto max-w-[1140px]
+                mx-auto max-w-[1220px]
                 px-4 scroll-pr-20
               "
             >
@@ -181,7 +194,7 @@ function NewArrivals() {
 
                   bg-black text-white rounded-3xl
 
-                  w-[220px] sm:w-[240px] lg:w-[260px]
+                  w-[180px] sm:w-[200px] lg:w-[220px]
 
                   flex items-center justify-center
                   text-lg font-semibold
@@ -215,7 +228,7 @@ const ProductCard = ({ item }) => (
     bg-white rounded-3xl overflow-hidden
     border shadow-sm
 
-    w-[220px] sm:w-[240px] lg:w-[260px]
+    w-[180px] sm:w-[200px] lg:w-[220px]
 
     hover:shadow-xl hover:-translate-y-1
     transition

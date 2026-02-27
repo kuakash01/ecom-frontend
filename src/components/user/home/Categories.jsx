@@ -51,20 +51,30 @@ function Categories() {
         </h2>
 
         {loading && (
-          <div className="flex gap-4 overflow-x-auto">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <CategorySkeleton key={i} />
-            ))}
-          </div>
+          <>
+            {/* Mobile */}
+            <div className="md:hidden flex gap-5 overflow-x-auto px-4 pb-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CategorySkeleton key={i} />
+              ))}
+            </div>
+
+            {/* Desktop */}
+            <div className="hidden md:grid gap-6 justify-center w-full [grid-template-columns:repeat(auto-fit,minmax(200px,200px))]">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CategorySkeleton key={i} />
+              ))}
+            </div>
+          </>
         )}
 
         {/* ================= MOBILE SLIDER ================= */}
 
         {!loading && (
-  <div className="md:hidden">
+          <div className="md:hidden">
 
-    <div
-      className="
+            <div
+              className="
         flex
         gap-5
 
@@ -76,25 +86,25 @@ function Categories() {
 
         hide-scrollbar
       "
-    >
+            >
 
-      {categories.map((cat) => (
+              {categories.map((cat) => (
 
-        <Link
-          key={cat._id}
-          to={`/${cat.slug}`}
-          className="
+                <Link
+                  key={cat._id}
+                  to={`/${cat.slug}`}
+                  className="
             flex-shrink-0
             flex
             flex-col
             items-center
             gap-2
           "
-        >
+                >
 
-          {/* Circular Image */}
-          <div
-            className="
+                  {/* Circular Image */}
+                  <div
+                    className="
               w-20 h-20
               rounded-full
               overflow-hidden
@@ -105,17 +115,17 @@ function Categories() {
               transition
               hover:scale-105
             "
-          >
-            <img
-              src={cat.image?.url || ""}
-              alt={cat.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+                  >
+                    <img
+                      src={cat.image?.url || ""}
+                      alt={cat.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-          {/* Name */}
-          <p
-            className="
+                  {/* Name */}
+                  <p
+                    className="
               text-xs
               font-medium
               text-gray-700
@@ -123,18 +133,18 @@ function Categories() {
               truncate
               w-20
             "
-          >
-            {cat.name}
-          </p>
+                  >
+                    {cat.name}
+                  </p>
 
-        </Link>
+                </Link>
 
-      ))}
+              ))}
 
-    </div>
+            </div>
 
-  </div>
-)}
+          </div>
+        )}
 
 
         {/* ================= DESKTOP GRID ================= */}

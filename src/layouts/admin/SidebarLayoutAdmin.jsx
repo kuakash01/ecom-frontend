@@ -42,7 +42,8 @@ function SidebarLayoutAdmin() {
       icon: <CmsIcon />,
       subItem: [
         { name: "Carousel", pathName: "/admin/carousel" },
-        
+        { name: "AnnouncementBar", pathName: "/admin/announcement" },
+
       ],
     },
   ];

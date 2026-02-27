@@ -11,7 +11,7 @@ function NewArrivalsSkeleton({ count = 4 }) {
         hide-scrollbar
 
         mx-auto
-        max-w-[1140px]
+        max-w-[1220px]
         px-4
       "
     >
@@ -27,9 +27,9 @@ function NewArrivalsSkeleton({ count = 4 }) {
             border
             shadow-sm
 
-            w-[220px]
-            sm:w-[240px]
-            lg:w-[260px]
+            w-[180px]
+            sm:w-[200px]
+            lg:w-[220px]
           "
         >
           {/* Image */}

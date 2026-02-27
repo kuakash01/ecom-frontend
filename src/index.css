@@ -12,76 +12,109 @@ html {
 }
 
 @theme {
-   /* Darker shades */
---color-brand-700: #4E2D1E;
---color-brand-600: #5F3927;
+  /* Darker shades */
+  --color-brand-700: #4E2D1E;
+  --color-brand-600: #5F3927;
 
-/* Your current core */
---color-brand-500: #714329;
---color-brand-400: #B08463;
---color-brand-300: #B9937B;
---color-brand-200: #D0B9A7;
---color-brand-100: #B5A192;
+  /* Your current core */
+  --color-brand-500: #714329;
+  --color-brand-400: #B08463;
+  --color-brand-300: #B9937B;
+  --color-brand-200: #D0B9A7;
+  --color-brand-100: #B5A192;
 
-/* Lighter shades */
---color-brand-50:  #E8DDD4;
---color-brand-25:  #F5EFE9;
-
-
-
-/* Dark Mode Core Brand Colors */
---color-brand-dark-700: #1A120B; /* Almost black but soft */
---color-brand-dark-600: #2A1F14; /* Very dark brownish */
---color-brand-dark-500: #3E2B1E; /* Dark coffee tone */
---color-brand-dark-400: #5A4030; /* Softer but still dark */
---color-brand-dark-300: #7A5A47; /* Medium muted */
---color-brand-dark-200: #A1785C; /* Warm accent */
---color-brand-dark-100: #C69C7D; /* Light accent */
-
-/* Lighter touches for dark mode */
---color-brand-dark-50:  #E0C9B3; /* Soft warm beige */
---color-brand-dark-25:  #F0E1D2; /* Very light for slight highlights */
+  /* Lighter shades */
+  --color-brand-50: #E8DDD4;
+  --color-brand-25: #F5EFE9;
 
 
-/* admin panel colors */
+
+  /* Dark Mode Core Brand Colors */
+  --color-brand-dark-700: #1A120B;
+  /* Almost black but soft */
+  --color-brand-dark-600: #2A1F14;
+  /* Very dark brownish */
+  --color-brand-dark-500: #3E2B1E;
+  /* Dark coffee tone */
+  --color-brand-dark-400: #5A4030;
+  /* Softer but still dark */
+  --color-brand-dark-300: #7A5A47;
+  /* Medium muted */
+  --color-brand-dark-200: #A1785C;
+  /* Warm accent */
+  --color-brand-dark-100: #C69C7D;
+  /* Light accent */
+
+  /* Lighter touches for dark mode */
+  --color-brand-dark-50: #E0C9B3;
+  /* Soft warm beige */
+  --color-brand-dark-25: #F0E1D2;
+  /* Very light for slight highlights */
+
+
+  /* admin panel colors */
 
   /* === Admin Neutral Dark Theme === */
---color-admin-dark-900: #0B1120; /* Main background (deep navy black) */
-  --color-admin-dark-800: #111827; /* Sidebar (midnight navy) */
-  --color-admin-dark-700: #1E293B; /* Panels / cards */
-  --color-admin-dark-600: #273449; /* Secondary panels */
-  --color-admin-dark-500: #334155; /* Borders / table headers */
-  --color-admin-dark-400: #475569; /* Muted text */
-  --color-admin-dark-300: #64748B; /* Secondary text */
-  --color-admin-dark-200: #94A3B8; /* Disabled / lighter text */
-  --color-admin-dark-100: #CBD5E1; /* Inputs / light surfaces */
-  --color-admin-dark-50:  #F1F5F9; /* Hover / very light */
+  --color-admin-dark-900: #0B1120;
+  /* Main background (deep navy black) */
+  --color-admin-dark-800: #111827;
+  /* Sidebar (midnight navy) */
+  --color-admin-dark-700: #1E293B;
+  /* Panels / cards */
+  --color-admin-dark-600: #273449;
+  /* Secondary panels */
+  --color-admin-dark-500: #334155;
+  /* Borders / table headers */
+  --color-admin-dark-400: #475569;
+  /* Muted text */
+  --color-admin-dark-300: #64748B;
+  /* Secondary text */
+  --color-admin-dark-200: #94A3B8;
+  /* Disabled / lighter text */
+  --color-admin-dark-100: #CBD5E1;
+  /* Inputs / light surfaces */
+  --color-admin-dark-50: #F1F5F9;
+  /* Hover / very light */
 
   /* === Admin Light Theme === */
-  --color-admin-light-900: #FFFFFF; /* Main background */
-  --color-admin-light-800: #FCFCFC; /* Workspace bg */
-  --color-admin-light-700: #F7F7F7; /* Sidebar bg */
-  --color-admin-light-600: #F2F2F2; /* Card bg */
-  --color-admin-light-500: #EAEAEA; /* Borders */
-  --color-admin-light-400: #DCDCDC; /* Muted border */
-  --color-admin-light-300: #C7C7C7; /* Secondary text */
-  --color-admin-light-200: #9E9E9E; /* Disabled text */
-  --color-admin-light-100: #5C5C5C; /* Body text */
-  --color-admin-light-50:  #1A1A1A; /* Heading text */
+  --color-admin-light-900: #FFFFFF;
+  /* Main background */
+  --color-admin-light-800: #FCFCFC;
+  /* Workspace bg */
+  --color-admin-light-700: #F7F7F7;
+  /* Sidebar bg */
+  --color-admin-light-600: #F2F2F2;
+  /* Card bg */
+  --color-admin-light-500: #EAEAEA;
+  /* Borders */
+  --color-admin-light-400: #DCDCDC;
+  /* Muted border */
+  --color-admin-light-300: #C7C7C7;
+  /* Secondary text */
+  --color-admin-light-200: #9E9E9E;
+  /* Disabled text */
+  --color-admin-light-100: #5C5C5C;
+  /* Body text */
+  --color-admin-light-50: #1A1A1A;
+  /* Heading text */
 
---color-error-500: #F87171; /* Error color */
---color-success-500: #34D399; /* Success color */
-  }
+  --color-error-500: #F87171;
+  /* Error color */
+  --color-success-500: #34D399;
+  /* Success color */
+}
 
-  /* Hide scrollbar for Chrome, Safari and Opera */
+/* Hide scrollbar for Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 
@@ -90,25 +123,63 @@ html {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
+
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #e5e7eb 25%,
-    #f3f4f6 37%,
-    #e5e7eb 63%
-  );
+  background: linear-gradient(90deg,
+      #e5e7eb 25%,
+      #f3f4f6 37%,
+      #e5e7eb 63%);
   background-size: 1000px 100%;
   animation: shimmer 1.5s infinite linear;
 }
 
 
 /* no scrollbar */
- .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
   }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
+
+/* print section  */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print\:block,
+  .print\:block * {
+    visibility: visible;
+  }
+
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

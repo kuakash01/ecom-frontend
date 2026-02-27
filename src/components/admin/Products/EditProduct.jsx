@@ -31,66 +31,61 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
   const [currentEditId, setCurrentEditId] = useState("");
   const dispatch = useDispatch();
 
-
   const onSubmit = async (data) => {
     setResponseLoading(true);
     const toastId = toast.loading("Updating Product...");
-    console.log("data", currentEditId);
+
     try {
-      const formData = new FormData();
-      const lastSelectedCategory = categoryLevels.map(l => l.selected).filter(Boolean).pop();
+      const lastSelectedCategory = categoryLevels
+        .map((l) => l.selected)
+        .filter(Boolean)
+        .pop();
 
-      if (!lastSelectedCategory) throw new Error("No category selected");
+      if (!lastSelectedCategory) {
+        throw new Error("No category selected");
+      }
 
-      let categoryLevel = [];
+      // Get highest category level key
+      const categoryLevelKeys = Object.keys(data).filter((key) =>
+        key.startsWith("categoryLevel")
+      );
+
+      if (categoryLevelKeys.length === 0) {
+        throw new Error("No category level found");
+      }
+
+      const highestKey = categoryLevelKeys.reduce((a, b) =>
+        +a.slice(13) > +b.slice(13) ? a : b
+      );
+
+      const categoryValue = data[highestKey];
+
+      // Build JSON payload
+      const payload = {};
+
       for (const key in data) {
-        if (key.startsWith("categoryLevel")) {
-          categoryLevel.push({ [key]: data[key] });
-        }
-      }
-      const value = Object.values(
-        categoryLevel.reduce((a, b) => +Object.keys(a)[0].slice(13) > +Object.keys(b)[0].slice(13) ? a : b)
-      )[0];
-      if (typeof value !== "string")
-        formData.append("category", typeof value === "string" ? value : value._id
-        );
-      // console.log("value", value)
+        // Skip category levels (handled separately)
+        if (key.startsWith("categoryLevel")) continue;
 
+        // Skip unwanted keys (if needed)
+        if (key === "variationColor" || key === "variationSize") continue;
 
-      for (const key in data) {
-        // Handle category level separately
-        if (key.startsWith("categoryLevel")) {
-          categoryLevel = data[key];
-          continue;
-        }
-
-        // Handle gallery separately
-        if (key === "gallery") {
-          data[key].forEach((item) => {
-            if (item instanceof File) {
-              formData.append("gallery", item); // New file
-            } else {
-              formData.append("existingGallery[]", item); // Existing URL
-            }
-          });
-          continue;
-        }
-
-        // Default case
-        formData.append(key, data[key]);
+        payload[key] = data[key];
       }
 
+      // Add final category
+      payload.category =
+        typeof categoryValue === "string"
+          ? categoryValue
+          : categoryValue?._id;
 
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value,);
-      }
+      const url = `/admin/products/${currentEditId}`;
 
-
-      const url =  `/admin/products/${currentEditId}`;
-
-      const method = "patch";
-
-      await api[method](url, formData);
+      await api.patch(url, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       toast.update(toastId, {
         render: "Product Updated",
@@ -111,7 +106,6 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
       });
     } finally {
       setResponseLoading(false);
-
     }
   };
 
@@ -314,93 +308,6 @@ const EditProduct = ({ setMode, currentEditDetails, revalidator }) => {
 
             </div>
           ))}
-
-
-
-          {/* Product Image */}
-          <div className="col-span-12 md:col-span-6 lg:col-span-4">
-            <Label>
-              Thumbnail <span className="text-red-400">*</span>
-            </Label>
-
-            <Controller
-              name="thumbnail"
-              control={control}
-              rules={{ required: "Thumbnail is required." }}
-              render={({ field, fieldState }) => {
-                const [preview, setPreview] = React.useState(
-                  typeof field.value === "string" ? field.value : null
-                );
-
-                React.useEffect(() => {
-                  if (typeof field.value === "string") setPreview(field.value);
-                }, [field.value]);
-
-                const handleChange = (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  field.onChange(file);
-                  setPreview(URL.createObjectURL(file));
-                  e.target.value = "";
-                };
-
-                const handleRemove = () => {
-                  field.onChange(null);
-                  setPreview(null);
-                };
-
-                return (
-                  <div>
-                    <input
-                      type="file"
-                      id="thumbnailInput"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleChange}
-                    />
-
-                    {preview ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.05 }}
-                        className="relative w-28 h-28 rounded-lg overflow-hidden border border-gray-300 shadow-sm group mt-2"
-                      >
-                        <img
-                          src={preview}
-                          alt="Thumbnail Preview"
-                          className="object-cover w-full h-full"
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          type="button"
-                          onClick={handleRemove}
-                          className="absolute top-1 right-1 bg-black/60 hover:bg-black text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 size={14} />
-                        </motion.button>
-                      </motion.div>
-                    ) : (
-                      <motion.label
-                        htmlFor="thumbnailInput"
-                        whileHover={{ scale: 1.1 }}
-                        className="mt-2 w-28 h-28 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100"
-                      >
-                        <Plus className="w-6 h-6 text-gray-500" />
-                      </motion.label>
-                    )}
-
-                    {fieldState.error && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                );
-              }}
-            />
-          </div>
 
 
           {/* Search Tags */}

@@ -172,7 +172,7 @@ const HeaderLayout = () => {
         {!isMobileOpen && (
           <NavContainer categories={categoryTree} />
         )}
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-2 md:gap-4 items-center">
           <Searchbar />
           <Link to="/cart">
             {/* <CartIcon className="text-2xl" /> */}
@@ -225,6 +225,7 @@ const HeaderLayout = () => {
     hover:bg-indigo-50
     transition-all duration-200
     mr-2
+    text-nowrap
   "
               >
                 Sign In

@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setUserData } from "../../redux/userSlice"
 import CartSkeleton from "../../components/user/loadingSkeleton/CartSkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
+import openRazorpay from "../../utils/openRazorpay";
 
 
 
@@ -20,12 +21,10 @@ const Checkout = () => {
     buyNowData?.quantity || 1
   );
 
-  const [paymentMode, setPaymentMode] = useState("cod");
+  const [paymentMode, setPaymentMode] = useState("");
 
   // order place states
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [orderId, setOrderId] = useState(null);
 
 
   const isCheckoutValid =
@@ -42,6 +41,11 @@ const Checkout = () => {
 
   const [searchParams] = useSearchParams();
   const checkoutType = searchParams.get("type");
+
+
+  // order failed state from query param
+  const [params] = useSearchParams();
+  const failed = params.get("payment") === "failed";
 
 
   const getPreview = async () => {
@@ -89,10 +93,54 @@ const Checkout = () => {
     }
   }
 
+  // const handlePlaceOrder = async () => {
+
+  //   try {
+  //     setLoading(true);
+  //     // Make API call to place order
+  //     const res = await api.post("/orders", {
+  //       type: checkoutType,
+  //       productId: buyNowData?.productId,
+  //       variantId: buyNowData?.variantId,
+  //       buyNowQty,
+  //       paymentMethod: paymentMode
+  //     });
+  //     console.log("Place order response:", res.data);
+
+  //     if (paymentMode === "online") {
+  //       openRazorpay(res.data);
+  //     } else {
+
+  //       setOrderId(res.data.order.orderId);
+  //       setSuccess(res.data && res.data.status === "success");
+  //       setLoading(false);
+
+  //       // Redirect to order confirmation or orders page
+  //       if (res.data && res.data.status === "success") {
+  //         setTimeout(() => {
+  //           setSuccess(false);
+  //           document.body.style.overflow = "auto";
+  //           navigate("/profile/orders");
+  //         }, 3000); // 3 sec delay
+  //       }
+
+  //       // COD success
+  //       navigate("/order-success");
+  //     }
+
+
+  //     // Clear buy now data from session storage
+  //     sessionStorage.removeItem("checkout_buy_now");
+
+  //   } catch (error) {
+  //     console.error("Error placing order:", error);
+  //   }
+  // }
+
   const handlePlaceOrder = async () => {
     try {
       setLoading(true);
-      // Make API call to place order
+
       const res = await api.post("/orders", {
         type: checkoutType,
         productId: buyNowData?.productId,
@@ -100,27 +148,29 @@ const Checkout = () => {
         buyNowQty,
         paymentMethod: paymentMode
       });
-      console.log("Place order response:", res.data);
 
+      if (paymentMode === "online") {
+        openRazorpay(res.data, navigate);
+        return;
+      }
 
-      setOrderId(res.data.order.orderId);
-      setSuccess(res.data && res.data.status === "success");
-      setLoading(false);
-      // Clear buy now data from session storage
-      sessionStorage.removeItem("checkout_buy_now");
-      // Redirect to order confirmation or orders page
-      if (res.data && res.data.status === "success") {
-        setTimeout(() => {
-          setSuccess(false);
-          document.body.style.overflow = "auto";
-          navigate("/profile/orders");
-        }, 3000); // 3 sec delay
+      // COD flow
+      if (res.data.status === "success") {
+        navigate(`/profile/orders/${res.data.order.orderDocId}`, {
+          replace: true,
+          state: { justPlaced: true }
+        });
+      } else {
+        navigate("/checkout?payment=failed", { replace: true });
       }
 
     } catch (error) {
       console.error("Error placing order:", error);
+      navigate("/checkout?payment=failed", { replace: true });
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
 
   useEffect(() => {
@@ -140,13 +190,6 @@ const Checkout = () => {
     }
   }, [buyNowQty]);
 
-  useEffect(() => {
-    if (success) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-  }, [success]);
 
 
 
@@ -169,6 +212,11 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 lg:px-16 py-10">
+      {failed && (
+        <div className="bg-red-100 border border-red-400 text-red-700 p-3 rounded mb-4">
+          Payment failed. Please try again.
+        </div>
+      )}
 
       {/* HEADER */}
       <div className="max-w-6xl mx-auto mb-8">
@@ -207,7 +255,7 @@ const Checkout = () => {
                   <div className="flex items-center gap-4">
 
                     <Link to={`../products/${item.productId}${item.attributes.color ? `?color=${item.attributes.color.colorName}` : ""}`} className="w-24 h-24 flex-shrink-0"
-                    target="_blank"
+                      target="_blank"
                     >
                       <img
                         src={item.mainImage}
@@ -403,33 +451,6 @@ const Checkout = () => {
           </div>
 
 
-          {/* DELIVERY */}
-          {/* <div className="bg-white rounded-2xl shadow p-6">
-
-          <h2 className="text-xl font-semibold mb-4">
-            Delivery Method
-          </h2>
-
-          <div className="flex justify-between items-center bg-gray-50 rounded-xl p-4">
-
-            <div>
-              <p className="font-medium">
-                Standard Delivery
-              </p>
-
-              <p className="text-sm text-gray-500">
-                3–5 business days
-              </p>
-
-            </div>
-
-            <span className="font-semibold text-green-600">
-              FREE
-            </span>
-
-          </div>
-
-        </div> */}
 
 
           {/* PAYMENT */}
@@ -441,12 +462,11 @@ const Checkout = () => {
 
             <div className="space-y-4">
 
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer text-gray-800">
 
                 <input
                   type="radio"
                   name="payment"
-                  defaultChecked
                   value="cod"
                   onChange={(e) => setPaymentMode(e.target.value)}
                 />
@@ -456,11 +476,14 @@ const Checkout = () => {
               </label>
 
 
-              <label className="flex items-center gap-3 text-gray-400">
+              <label className="flex items-center gap-3 cursor-pointer text-gray-800">
 
-                <input type="radio" disabled />
+                <input type="radio"
+                  name="payment"
+                  value="online"
+                  onChange={(e) => setPaymentMode(e.target.value)} />
 
-                <span>Online Payment (Coming Soon)</span>
+                <span>Online Payment</span>
 
               </label>
 
@@ -519,27 +542,27 @@ const Checkout = () => {
               </p>
 
 
-              {!success && (
 
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={loading || !isCheckoutValid}
-                  className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2
+
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || !isCheckoutValid}
+                className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2
     ${loading || !isCheckoutValid
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                    }
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  }
   `}
-                >
-                  {loading && (
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
+              >
+                {loading && (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
 
-                  {loading ? "Placing Order..." : "Place Order"}
-                </button>
+                {loading ? "Placing Order..." : "Place Order"}
+              </button>
 
 
-              )}
+
 
             </div>
 
@@ -549,56 +572,6 @@ const Checkout = () => {
       </div>
 
 
-
-      {/* ORDER SUCCESS MODAL */}
-      {success && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl animate-fadeIn">
-
-            {/* Check Icon */}
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Order Placed Successfully 🎉
-            </h2>
-
-            <p className="text-gray-500 mb-2">
-              Thank you for shopping with us
-            </p>
-
-            {orderId && (
-              <p className="text-sm text-gray-600 mb-4">
-                Order ID: <span className="font-medium">{orderId}</span>
-              </p>
-            )}
-
-            <p className="text-sm text-gray-400">
-              Redirecting to your orders...
-            </p>
-
-            {/* Loader */}
-            <div className="mt-4 flex justify-center">
-              <span className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </div>
   );
@@ -626,330 +599,4 @@ const Row = ({ label, value, green }) => (
 
   </div>
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// return (
-//   <div className="px-2 lg:px-20 py-10">
-//     <h1 className="text-4xl font-bold">CHECKOUT</h1>
-
-//     <div className="grid grid-cols-12 my-8 gap-4">
-//       {/* LEFT SIDE */}
-//       <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
-//         {/* Cart Items */}
-//         <div className="border rounded-2xl border-gray-300 p-5">
-//           {previewData && previewData.cartItems.length > 0 ? previewData.cartItems.map((item, index, array) => (
-//             <div key={index}>
-
-//               <div className="item flex items-center ">
-//                 <Link to={`../products/${item.productId}?color=${item.attributes.color.colorName}`}>
-//                   <img
-//                     className="h-30 aspect-square object-cover rounded-lg cursor-pointer"
-//                     src={item.mainImage}
-//                     alt=""
-//                   />
-//                 </Link>
-//                 <div className=" flex justify-between w-full h-30">
-//                   <div className="mx-4 flex flex-col justify-between">
-//                     <div>
-//                       <span className="font-medium text-xl">{item.title}</span>
-//                       <span className="flex gap-1">
-//                         <p className=" text-sm">Size:</p>{" "}
-//                         <p className="text-gray-500 text-sm flex"> {item.attributes.size.sizeName} </p>
-//                       </span>
-//                       <span className="flex gap-1">
-//                         <p className=" text-sm">Qty:</p>{" "}
-//                         <p className="text-gray-500 text-sm flex"> {item.quantity} </p>
-//                       </span>
-
-//                     </div>
-//                     <div className="space-x-2">
-//                       <span className="pt-2 text-xl font-medium ">Rs. {item.price}</span>
-//                       <span className="pt-2 text-sm font-medium text-gray-400 line-through">Rs. {item.mrp}</span>
-//                     </div>
-//                   </div>
-//                   <div className="flex flex-col justify-end items-end">
-//                     <div className="flex text-lg ">
-//                       <button onClick={() => checkoutType === "CART" ? handleUpdateQuantityCart(item._id, "decrement") : decrementQty()} className={`${item.quantity === 1 ? "cursor-not-allowed " : "cursor-pointer focus:ring-1 focus:ring-gray-600 focus:ring-inset"} py-1 px-4 bg-stone-200  rounded-l-full  box-border`}>
-//                         -
-//                       </button>
-
-//                       <span className="py-1 px-3 bg-stone-200  select-none">
-//                         {item.quantity}
-//                       </span>
-
-//                       <button onClick={() => checkoutType === "CART" ? handleUpdateQuantityCart(item._id, "increment") : incrementQty()} className="py-1 px-4 bg-stone-200  rounded-r-full cursor-pointer focus:ring-1 focus:ring-gray-600 focus:ring-inset box-border">
-//                         +
-//                       </button>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//               {
-//                 array.length - 1 !== index && (
-//                   <div className="w-full border-b border-b-gray-300 my-4"></div>
-//                 )
-//               }
-//             </div>
-//           )) : <div className="text-center">Cart is empty</div>}
-//         </div>
-//         {/* ADDRESS */}
-//         <div className="bg-white rounded-2xl shadow p-6">
-
-//           <div className="flex justify-between items-center mb-4">
-
-//             <h2 className="text-xl font-semibold">
-//               Delivery Address
-//             </h2>
-
-//             {previewData?.address && (
-//               <button
-//                 onClick={() => navigate("/profile/addresses")}
-//                 className="text-indigo-600 text-sm font-medium hover:underline"
-//               >
-//                 Change
-//               </button>
-//             )}
-
-//           </div>
-
-
-//           {/* ADDRESS FOUND */}
-//           {previewData?.address ? (
-
-//             <div className="space-y-1">
-
-//               <p className="font-medium text-gray-900">
-//                 {previewData.address.fullName}
-//               </p>
-
-//               <p className="text-sm text-gray-600 leading-relaxed">
-
-//                 {previewData.address.addressLine1}
-
-//                 {previewData.address.addressLine2 &&
-//                   `, ${previewData.address.addressLine2}`}
-
-//                 {previewData.address.landmark &&
-//                   `, Near ${previewData.address.landmark}`}
-
-//                 <br />
-
-//                 {previewData.address.city}, {previewData.address.state}
-//                 {" "}– {previewData.address.pincode}
-
-//                 <br />
-
-//                 India
-
-//               </p>
-
-//               <p className="text-sm text-gray-600">
-//                 Phone: {previewData.address.phone}
-//               </p>
-
-//               {previewData.address.alternatePhone && (
-//                 <p className="text-sm text-gray-600">
-//                   Alt: {previewData.address.alternatePhone}
-//                 </p>
-//               )}
-
-
-//               {/* DEFAULT BADGE */}
-//               {previewData.address.isDefault && (
-//                 <span className="inline-block mt-2 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-//                   Default Address
-//                 </span>
-//               )}
-
-//             </div>
-
-//           ) : (
-
-//             /* NO ADDRESS */
-//             <div
-//               // onClick={() => navigate("/profile/addresses/add?redirect=/checkout")}
-//               onClick={() => {
-//                 const redirectUrl =
-//                   location.pathname + location.search;
-
-//                 navigate(
-//                   `/profile/addresses/add?redirect=${encodeURIComponent(redirectUrl)}`
-//                 );
-//               }}
-
-//               className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition"
-//             >
-
-//               <p className="text-gray-500 mb-1">
-//                 No address found
-//               </p>
-
-//               <p className="text-indigo-600 font-medium">
-//                 + Add New Address
-//               </p>
-
-//             </div>
-
-//           )}
-
-//         </div>
-
-
-//         {/* Delivery Option */}
-//         <div className="border border-gray-300 rounded-2xl p-5">
-//           <h2 className="text-xl font-medium mb-4">Delivery Options</h2>
-
-//           <div className="flex justify-between items-center border p-4 rounded-xl">
-//             <div>
-//               <p className="font-medium">Standard Delivery</p>
-//               <p className="text-sm text-gray-500">3–5 business days</p>
-//             </div>
-//             <p className="font-medium">FREE</p>
-//           </div>
-//         </div>
-
-//         {/* Payment */}
-//         <div className="border border-gray-300 rounded-2xl p-5">
-//           <h2 className="text-xl font-medium mb-4">Payment Method</h2>
-
-//           <div className="space-y-3">
-//             <label className="flex items-center gap-3 cursor-pointer">
-//               <input type="radio" name="payment" defaultChecked onChange={(e) => setPaymentMode(e.target.value)} value="cod" />
-//               <span>Cash on Delivery</span>
-//             </label>
-
-//             <label className="flex items-center gap-3 cursor-pointer text-gray-400">
-//               <input type="radio" name="payment" value="online" disabled onChange={(e) => setPaymentMode(e.target.value)} />
-//               <span>Online Payment (Coming Soon)</span>
-//             </label>
-//           </div>
-//         </div>
-
-//       </div>
-
-//       {/* RIGHT SIDE SUMMARY */}
-//       {previewData?.cartSummary?.total > 0 && <div className="col-span-12 lg:col-span-4 p-5 sticky top-20 border h-fit border-gray-300 rounded-2xl flex flex-col gap-4">
-//         <p className="text-xl font-medium">Order Summary</p>
-
-//         <div className="flex justify-between">
-//           <p className="text-gray-500">Subtotal</p>
-//           <p className="font-medium">Rs. {previewData?.cartSummary?.subtotal || 0}</p>
-//         </div>
-
-//         <div className="flex justify-between">
-//           <p className="text-gray-500">Discount</p>
-//           <p className="font-medium text-red-500">
-//             Rs. {previewData?.cartSummary?.discount || 0}
-//           </p>
-//         </div>
-
-//         <div className="flex justify-between">
-//           <p className="text-gray-500">Delivery Fee</p>
-//           <p className="font-medium">Rs. {previewData?.cartSummary?.deliveryCharge || 0}</p>
-//         </div>
-
-//         <div className="w-full border-b border-gray-300"></div>
-
-//         {/* <div className="flex justify-between text-lg">
-//           <p className="font-medium">Total</p>
-//           <p className="font-bold">Rs. {previewData?.cartSummary?.total || 0}</p>
-//         </div> */}
-//         <div >
-//           <div className="flex justify-between text-lg">
-//             <p className="font-medium">Total</p>{" "}
-//             <p className="font-bold">Rs. {previewData?.cartSummary?.finalTotal || 0}</p>
-//           </div>
-//           <p className="text-xs text-gray-500 mt-1 text-right">
-//             Inclusive of all taxes
-//           </p>
-//         </div>
-
-//         {!success && (
-//           <button
-//             onClick={handlePlaceOrder}
-//             disabled={loading}
-//             // className="px-8 py-3 bg-black rounded-full text-white font-medium"
-//             className="w-full py-3 rounded-lg text-white font-semibold bg-black hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
-//           >
-//             {loading && (
-//               <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-//             )}
-//             {loading ? "Placing order..." : "Place Order"}
-//           </button>
-//         )}
-//       </div>}
-//     </div>
-//     {success && (
-//       <div className="
-//   fixed inset-0 z-50
-//   bg-black/40 backdrop-blur-sm
-//   flex items-center justify-center
-// ">
-
-//         <div className="
-//     bg-white rounded-2xl shadow-xl
-//     px-8 py-10
-//     w-[90%] max-w-md
-//     text-center
-//     animate-fadeIn
-//   ">
-
-//           {/* Check Icon */}
-//           <div className="
-//       mx-auto w-20 h-20 rounded-full bg-green-100
-//       flex items-center justify-center
-//       animate-scaleIn
-//     ">
-//             <svg
-//               className="w-10 h-10 text-green-600"
-//               fill="none"
-//               stroke="currentColor"
-//               strokeWidth="3"
-//               viewBox="0 0 24 24"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 d="M5 13l4 4L19 7"
-//               />
-//             </svg>
-//           </div>
-
-//           {/* Text */}
-//           <h2 className="mt-4 text-2xl font-bold text-gray-800">
-//             Order Placed Successfully 🎉
-//           </h2>
-
-//           <p className="mt-2 text-gray-600">
-//             Order ID: <span className="font-medium">{orderId}</span>
-//           </p>
-
-//           <p className="mt-1 text-sm text-gray-500">
-//             Redirecting to your orders…
-//           </p>
-
-//         </div>
-//       </div>
-//     )}
-
-//   </div>
-// );
 

@@ -8,6 +8,7 @@ import AuthModal from "../../components/user/Auth/AuthModal";
 import { setIsAuthModalOpen, setIsAuthenticated, setUserData, setIsLoading } from "../../redux/userSlice";
 import { checkAuthUser } from "../../services/authService";
 import api from "../../config/apiAdmin";
+import AnnouncementBar from "../../components/user/header/AnnouncementBar";
 
 function AppLayout() {
   const isSidebarOpen = useSelector((state) => state.theme.isSidebarOpen);
@@ -62,14 +63,15 @@ function AppLayout() {
     verifyUser();
   }, [dispatch]);
 
-  if(isLoading) return;
+  if (isLoading) return;
 
   return (
     <div className="  bg-white dark:bg-black/30 relative ">
       {/* Sidebar */}
       {!isMobileOpen && <div className="relative z-50">
-        <div className="topbar  bg-black text-white p-1">topbar</div>
+        {/* <div className="topbar  bg-black text-white p-1">topbar</div> */}
       </div>}
+        <AnnouncementBar />
       <div className="sticky top-0 z-30 shadow-lg">
         <HeaderLayout />
       </div>

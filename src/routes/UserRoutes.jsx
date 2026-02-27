@@ -22,14 +22,13 @@ import { useDispatch } from "react-redux";
 
 
 
-
 // Auth-protected layout wrapper
 const ProtectedRoute = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
 
   if (user.isLoading)
-    return null ;
+    return null;
   return user?.isAuthenticated ? <Outlet /> : <Navigate to="/" />
 };
 
@@ -75,6 +74,7 @@ const userRoutes = {
               path: "orders",
               element: <Orders />,
             },
+
             {
               path: "orders/:orderId",
               element: <OrderDetails />,
@@ -94,11 +94,12 @@ const userRoutes = {
 
           ]
         },
+      
       ]
     },
     {
       path: '*',
-      element:<h2>This route is not present</h2>
+      element: <h2>This route is not present</h2>
     }
 
 

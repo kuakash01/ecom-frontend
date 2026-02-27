@@ -5,11 +5,7 @@ import Input from "../../common/form/input/InputField";
 import Textarea from "../../common/form/input/TextArea";
 import Select from "../../common/form/Select";
 import SearchSelect from "../../common/form/SearchSelect";
-
-
 import { useForm, Controller } from "react-hook-form";
-import { Plus, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import api from '../../../config/apiAdmin';
 import VariationsSection from "./VariationsSection";
@@ -35,79 +31,65 @@ const AddProducts = ({ setMode, revalidator }) => {
     const toastId = toast.loading("Adding Product...");
 
     try {
-      const formData = new FormData();
-      const lastSelectedCategory = categoryLevels.map(l => l.selected).filter(Boolean).pop();
+      const lastSelectedCategory = categoryLevels
+        .map((l) => l.selected)
+        .filter(Boolean)
+        .pop();
 
-      if (!lastSelectedCategory) throw new Error("No category selected");
-
-      let categoryLevel = [];
-      for (const key in data) {
-        if (key.startsWith("categoryLevel")) {
-          categoryLevel.push({ [key]: data[key] });
-        }
+      if (!lastSelectedCategory) {
+        throw new Error("No category selected");
       }
-      const value = Object.values(
-        categoryLevel.reduce((a, b) => +Object.keys(a)[0].slice(13) > +Object.keys(b)[0].slice(13) ? a : b)
-      )[0];
-      if (typeof value !== "string")
-        formData.append("category", typeof value === "string" ? value : value._id
-        );
-      // console.log("value", value)
 
+      // Get highest category level value
+      let categoryLevelKeys = Object.keys(data).filter((key) =>
+        key.startsWith("categoryLevel")
+      );
+
+      if (categoryLevelKeys.length === 0) {
+        throw new Error("No category level found");
+      }
+
+      const highestKey = categoryLevelKeys.reduce((a, b) =>
+        +a.slice(13) > +b.slice(13) ? a : b
+      );
+
+      const categoryValue = data[highestKey];
+
+      // Prepare JSON payload
+      const payload = {};
 
       for (const key in data) {
-        // Handle category level separately
-        if (key.startsWith("categoryLevel")) {
-          categoryLevel = data[key];
-          continue;
-        }
-
-        if (key === "variations") {
-          formData.append("variations", JSON.stringify(data[key]));
-          continue;
-        }
+        // Skip category levels (we handle separately)
+        if (key.startsWith("categoryLevel")) continue;
 
         if (key === "variationColor" || key === "variationSize") continue;
 
-        // Default case
-        formData.append(key, data[key]);
+        if (key === "variations") {
+          payload.variations = data.variations;
+          continue;
+        }
+
+        payload[key] = data[key];
       }
 
-      // for (let [key, value] of formData.entries()) {
+      // Add category properly
+      payload.category =
+        typeof categoryValue === "string"
+          ? categoryValue
+          : categoryValue?._id;
 
-      //   // Print color galleries with color ID
-      //   if (key.startsWith("colorGalleries_")) {
-      //     const colorId = key.split("_")[1].replace("[]", "");
-      //     console.log(`Color ID: ${colorId} -> Gallery File:`, value);
-      //     continue;
-      //   }
-
-      //   // Print variations array (clean JSON)
-      //   if (key === "variations") {
-      //     try {
-      //       const variations = JSON.parse(value);
-      //       console.log("Variations:", variations);
-      //     } catch (err) {
-      //       console.log("Variations (raw):", value);
-      //     }
-      //     continue;
-      //   }
-
-      //   // Default (only if you want)
-      //   console.log(key, value);
-      // }
-
-
-
-
-      const response = await api.post(`/admin/products`, formData);
+      const response = await api.post("/admin/products", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       toast.update(toastId, {
         render: response.data.message,
         type: response.data.status === "success" ? "success" : "error",
         isLoading: false,
         autoClose: 2000,
-        closeButton: true
+        closeButton: true,
       });
 
       handleCloseModal();
@@ -125,7 +107,6 @@ const AddProducts = ({ setMode, revalidator }) => {
       setResponseLoading(false);
     }
   };
-
 
   const handleCloseModal = () => {
     setMode("list");
@@ -273,92 +254,6 @@ const AddProducts = ({ setMode, revalidator }) => {
 
 
 
-
-
-
-        {/* Product Image */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-4">
-          <Label>
-            Thumbnail <span className="text-red-400">*</span>
-          </Label>
-
-          <Controller
-            name="thumbnail"
-            control={control}
-            rules={{ required: "Thumbnail is required." }}
-            render={({ field, fieldState }) => {
-              const [preview, setPreview] = React.useState(null);
-
-              const handleChange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                field.onChange(file);
-                setPreview(URL.createObjectURL(file));
-
-                // Reset input value so selecting the same file again works
-                e.target.value = "";
-              };
-
-              const handleRemove = () => {
-                field.onChange(null);
-                setPreview(null);
-              };
-
-              return (
-                <div>
-                  {/* Hidden Input */}
-                  <input
-                    type="file"
-                    id="thumbnailInput"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleChange}
-                  />
-
-                  {/* Thumbnail Preview or Add Button */}
-                  {preview ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      whileHover={{ scale: 1.05 }}
-                      className="relative w-28 h-28 rounded-lg overflow-hidden border border-gray-300 shadow-sm group mt-2"
-                    >
-                      <img
-                        src={preview}
-                        alt="Thumbnail Preview"
-                        className="object-cover w-full h-full"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        type="button"
-                        onClick={handleRemove}
-                        className="absolute top-1 right-1 bg-black/60 hover:bg-black text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 size={14} />
-                      </motion.button>
-                    </motion.div>
-                  ) : (
-                    <motion.label
-                      htmlFor="thumbnailInput"
-                      whileHover={{ scale: 1.1 }}
-                      className="mt-2 w-28 h-28 flex items-center justify-center border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:bg-gray-100"
-                    >
-                      <Plus className="w-6 h-6 text-gray-500" />
-                    </motion.label>
-                  )}
-
-                  {/* Error Message */}
-                  {fieldState.error && (
-                    <p className="text-error-500 text-xs mt-1">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </div>
-              );
-            }}
-          />
-        </div>
 
 
         {/* search Tags */}

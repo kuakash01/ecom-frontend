@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api from "../../config/apiUser";
 import { ArrowPrevIcon } from "../../icons";
 import useScrollToTop from "../../hooks/useScrollToTop";
+import { useLocation } from "react-router-dom";
 
 /* ================= MAIN ================= */
 
@@ -12,6 +13,10 @@ const OrderDetails = () => {
 
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+
+
+    const location = useLocation();
+    const justPlaced = location.state?.justPlaced;
 
     const getOrderDetails = async () => {
         try {
@@ -51,6 +56,12 @@ const OrderDetails = () => {
         <div className="min-h-screen py-8 px-4">
 
             <div className="max-w-4xl mx-auto">
+                {justPlaced && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                        🎉 Your order has been placed successfully!
+                    </div>
+                )}
+
 
                 {/* BACK */}
                 <Link
@@ -212,10 +223,9 @@ const OrderDetails = () => {
                         <div className="rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 ring-1 ring-gray-100 space-y-2 text-sm">
 
                             <Row
-                                label="Items total"
-                                value={`₹${order.priceSummary.subTotal}`}
+                                label="Sub Total"
+                                value={`₹${order?.priceSummary?.mrpSubTotal || ""}`}
                             />
-
                             <Row
                                 label="Discount"
                                 value={
@@ -223,7 +233,11 @@ const OrderDetails = () => {
                                         ? `- ₹${order.priceSummary.discount}`
                                         : "₹0"
                                 }
+                                green={order.priceSummary.discount > 0}
                             />
+                          
+
+
 
                             <Row
                                 label="Delivery"
@@ -275,10 +289,10 @@ const Section = ({ title, children }) => (
 );
 
 
-const Row = ({ label, value }) => (
+const Row = ({ label, value, green }) => (
     <div className="flex justify-between text-sm">
         <span className="text-gray-500">{label}</span>
-        <span className="font-medium text-gray-800">{value || "-"}</span>
+        <span className={`font-medium ${green ? "text-green-600" : "text-gray-800"}`}>{value || "-"}</span>
     </div>
 );
 
@@ -327,14 +341,24 @@ const StatusBadgeTxn = ({ status }) => {
 
 const OrderProgress = ({ status }) => {
 
-    const steps = ["pending", "processing", "shipped", "delivered"];
+    const steps = [
+        "pending",
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered"
+    ];
 
     const labels = {
         pending: "Placed",
+        confirmed: "Confirmed",
         processing: "Processing",
         shipped: "Shipped",
         delivered: "Delivered"
     };
+
+    const isCancelled = status === "cancelled";
+    const isReturned = status === "returned";
 
     const current = steps.indexOf(status);
 
@@ -343,38 +367,60 @@ const OrderProgress = ({ status }) => {
 
             {steps.map((step, index) => {
 
-                const active = index <= current;
+                const active = index <= current && !isCancelled;
 
                 return (
                     <div key={step} className="flex-1 flex items-center">
 
+                        {/* Step Circle */}
                         <div
                             className={`
-                w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
-                ${active
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-200 text-gray-500"}
-              `}
+                                w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
+                                ${isCancelled
+                                    ? "bg-red-500 text-white"
+                                    : active
+                                        ? "bg-green-500 text-white"
+                                        : "bg-gray-200 text-gray-500"}
+                            `}
                         >
                             {index + 1}
                         </div>
 
+                        {/* Label */}
                         <div className="ml-2 text-xs text-gray-600">
                             {labels[step]}
                         </div>
 
+                        {/* Line */}
                         {index < steps.length - 1 && (
                             <div
                                 className={`
-                  flex-1 h-1 mx-2 rounded
-                  ${active ? "bg-green-500" : "bg-gray-200"}
-                `}
+                                    flex-1 h-1 mx-2 rounded
+                                    ${isCancelled
+                                        ? "bg-red-300"
+                                        : active
+                                            ? "bg-green-500"
+                                            : "bg-gray-200"}
+                                `}
                             />
                         )}
-
                     </div>
                 );
             })}
+
+            {/* Cancelled Badge */}
+            {isCancelled && (
+                <div className="ml-4 text-sm font-semibold text-red-600">
+                    Order Cancelled ❌
+                </div>
+            )}
+
+            {/* Returned Badge */}
+            {isReturned && (
+                <div className="ml-4 text-sm font-semibold text-orange-500">
+                    Order Returned 🔄
+                </div>
+            )}
         </div>
     );
 };
