@@ -236,7 +236,7 @@ const ProductCard = ({ item }) => (
 
     <Link
       to={`/products/${item._id}`}
-      target="_blank"
+     
       className="block overflow-hidden group"
     >
 

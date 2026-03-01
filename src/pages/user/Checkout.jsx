@@ -1,142 +1,115 @@
 import { useEffect, useState } from "react";
 import api from "../../config/apiUser";
-import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowDownIcon, BinIcon, DiscountIcon } from "../../icons";
+import {
+  useLocation,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { setUserData } from "../../redux/userSlice"
-import CartSkeleton from "../../components/user/loadingSkeleton/CartSkeleton";
+import { setUserData } from "../../redux/userSlice";
+import CartItemSkeleton from "../../components/user/loadingSkeleton/CartItemSkeleton";
+import CartSummarySkeleton from "../../components/user/loadingSkeleton/CartSummarySkeleton";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import openRazorpay from "../../utils/openRazorpay";
 
-
-
 const Checkout = () => {
   const [previewData, setPreviewData] = useState(null);
-
-  // Buy Now Checkout Data
-  const location = useLocation();
-  const storedData = sessionStorage.getItem("checkout_buy_now");
-  const buyNowData = location.state || storedData;
-  const [buyNowQty, setBuyNowQty] = useState(
-    buyNowData?.quantity || 1
-  );
-
   const [paymentMode, setPaymentMode] = useState("");
-
-  // order place states
   const [loading, setLoading] = useState(false);
-
-
-  const isCheckoutValid =
-    previewData?.cartItems?.length > 0 &&
-    previewData?.address &&
-    paymentMode;
-
   const [pageLoading, setPageLoading] = useState(true);
 
-  const navigate = useNavigate();
+  // 🔥 NEW STATES
+  const [updatingItemId, setUpdatingItemId] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
-  const { userData } = useSelector((state) => state.user);
+  const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { userData } = useSelector((state) => state.user);
 
   const [searchParams] = useSearchParams();
   const checkoutType = searchParams.get("type");
+  const failed = searchParams.get("payment") === "failed";
 
+  const storedData = sessionStorage.getItem("checkout_buy_now");
+  const buyNowData = location.state || (storedData && JSON.parse(storedData));
+  const [buyNowQty, setBuyNowQty] = useState(buyNowData?.quantity || 1);
 
-  // order failed state from query param
-  const [params] = useSearchParams();
-  const failed = params.get("payment") === "failed";
+  const isCheckoutValid =
+    previewData?.cartItems?.length > 0 && previewData?.address && paymentMode;
 
+  useScrollToTop();
 
+  // 🔥 TOAST
+  const showToast = (message) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), 2000);
+  };
+
+  // ================= PREVIEW =================
   const getPreview = async () => {
     try {
       const res = await api.post("/checkout/preview", {
         type: checkoutType,
         productId: buyNowData?.productId,
         variantId: buyNowData?.variantId,
-        buyNowQty
+        buyNowQty,
       });
-      console.log("Checkout Preview Data:", res.data);
-      if (res.data && res.data.status === "success" && res.data.data.cartItems.length === 0) {
+
+      if (
+        res.data.status === "success" &&
+        res.data.data.cartItems.length === 0
+      ) {
         navigate("/cart");
         return;
       }
-      setPreviewData(res.data.data);
 
+      setPreviewData(res.data.data);
     } catch (err) {
       console.error(err);
     }
   };
-  const incrementQty = () => {
-    setBuyNowQty(prev => prev + 1);
-    getPreview();
-  };
 
-  const decrementQty = () => {
-    if (buyNowQty > 1) {
-      setBuyNowQty(prev => prev - 1);
-      getPreview();
-    }
-  };
-
+  // ================= CART QTY UPDATE =================
   const handleUpdateQuantityCart = async (cartItemId, type, quantity = 1) => {
     try {
+      setUpdatingItemId(cartItemId);
+
       const res = await api.patch(`/cart/items/${cartItemId}`, {
         quantity,
-        type
-      })
-      getPreview();
-      dispatch(setUserData({ ...userData, cartCount: res.data.cart.cartCount }));
-      console.log("user cart update response", res.data);
+        type,
+      });
+
+      dispatch(
+        setUserData({
+          ...userData,
+          cartCount: res.data.cart.cartCount,
+        }),
+      );
+
+      await getPreview();
+
+      showToast(
+        type === "increment" ? "Quantity increased" : "Quantity decreased",
+      );
     } catch (error) {
-      console.error("Error updating user cart", error);
+      console.error("Error updating cart", error);
+    } finally {
+      setUpdatingItemId(null);
     }
-  }
+  };
 
-  // const handlePlaceOrder = async () => {
+  // ================= INITIAL LOAD =================
+  useEffect(() => {
+    (async () => {
+      setPageLoading(true);
+      await getPreview();
+      setPageLoading(false);
+    })();
+  }, []);
 
-  //   try {
-  //     setLoading(true);
-  //     // Make API call to place order
-  //     const res = await api.post("/orders", {
-  //       type: checkoutType,
-  //       productId: buyNowData?.productId,
-  //       variantId: buyNowData?.variantId,
-  //       buyNowQty,
-  //       paymentMethod: paymentMode
-  //     });
-  //     console.log("Place order response:", res.data);
-
-  //     if (paymentMode === "online") {
-  //       openRazorpay(res.data);
-  //     } else {
-
-  //       setOrderId(res.data.order.orderId);
-  //       setSuccess(res.data && res.data.status === "success");
-  //       setLoading(false);
-
-  //       // Redirect to order confirmation or orders page
-  //       if (res.data && res.data.status === "success") {
-  //         setTimeout(() => {
-  //           setSuccess(false);
-  //           document.body.style.overflow = "auto";
-  //           navigate("/profile/orders");
-  //         }, 3000); // 3 sec delay
-  //       }
-
-  //       // COD success
-  //       navigate("/order-success");
-  //     }
-
-
-  //     // Clear buy now data from session storage
-  //     sessionStorage.removeItem("checkout_buy_now");
-
-  //   } catch (error) {
-  //     console.error("Error placing order:", error);
-  //   }
-  // }
-
+  // ================= PLACE ORDER =================
   const handlePlaceOrder = async () => {
     try {
       setLoading(true);
@@ -146,7 +119,7 @@ const Checkout = () => {
         productId: buyNowData?.productId,
         variantId: buyNowData?.variantId,
         buyNowQty,
-        paymentMethod: paymentMode
+        paymentMethod: paymentMode,
       });
 
       if (paymentMode === "online") {
@@ -154,61 +127,20 @@ const Checkout = () => {
         return;
       }
 
-      // COD flow
       if (res.data.status === "success") {
         navigate(`/profile/orders/${res.data.order.orderDocId}`, {
           replace: true,
-          state: { justPlaced: true }
+          state: { justPlaced: true },
         });
       } else {
         navigate("/checkout?payment=failed", { replace: true });
       }
-
     } catch (error) {
-      console.error("Error placing order:", error);
       navigate("/checkout?payment=failed", { replace: true });
     } finally {
       setLoading(false);
     }
   };
-
-
-  useEffect(() => {
-    if (!checkoutType || (checkoutType === "BUY_NOW" && !buyNowData))
-      navigate("/");
-
-    if (checkoutType === "BUY_NOW") {
-      const updated = {
-        ...buyNowData,
-        quantity: buyNowQty
-      };
-
-      sessionStorage.setItem(
-        "checkout_buy_now",
-        JSON.stringify(updated)
-      );
-    }
-  }, [buyNowQty]);
-
-
-
-
-  useEffect(() => {
-    (async () => {
-      setPageLoading(true);
-      await getPreview();
-      setPageLoading(false);
-    })()
-  }, []);
-
-
-  useScrollToTop();
-
-
-  if (pageLoading)
-    return <CartSkeleton />
-
-
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 lg:px-16 py-10">
@@ -220,53 +152,39 @@ const Checkout = () => {
 
       {/* HEADER */}
       <div className="max-w-6xl mx-auto mb-8">
-
-        <h1 className="text-4xl font-semibold text-gray-900">
-          Checkout
-        </h1>
+        <h1 className="text-4xl font-semibold text-gray-900">Checkout</h1>
 
         <p className="text-gray-500 mt-1">
           Review your order and complete purchase
         </p>
-
       </div>
 
-
       <div className="max-w-6xl mx-auto grid grid-cols-12 gap-4 lg:gap-8">
-
         {/* LEFT */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
-
-
-          {/* CART */}
+          {/* ITEMS */}
           <div className="bg-white rounded-2xl shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Your Items</h2>
 
-            <h2 className="text-xl font-semibold mb-4">
-              Your Items
-            </h2>
-
-
-            {previewData?.cartItems?.length ? (
-
+            {pageLoading ? (
+              <CartItemSkeleton />
+            ) : previewData?.cartItems?.length ? (
               previewData.cartItems.map((item, index, array) => (
-
                 <div key={index}>
-
-                  <div className="flex items-center gap-4">
-
-                    <Link to={`../products/${item.productId}${item.attributes.color ? `?color=${item.attributes.color.colorName}` : ""}`} className="w-24 h-24 flex-shrink-0"
-                      target="_blank"
+                  <div className="flex items-start sm:items-center gap-4">
+                    <Link
+                      to={`/products/${item.productId}${item.attributes.color.colorName ? `?color=${item.attributes.color.colorName}` : ""}`}
+                      className="w-24 flex-shrink-0"
                     >
                       <img
                         src={item.mainImage}
-                        className="w-24 h-24 object-cover rounded-xl"
+                        className="w-24 object-cover rounded-xl"
+                        alt={item.title}
                       />
                     </Link>
 
-
-                    <div className="flex-1">
-
-                      <p className="font-medium text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 line-clamp-2">
                         {item.title}
                       </p>
 
@@ -274,88 +192,57 @@ const Checkout = () => {
                         Size: {item.attributes.size.sizeName}
                       </p>
 
-                      <p className="text-sm text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
+                      {/* 🔥 QTY WITH LOADING */}
+                      <div className="mt-2 flex items-center">
+                        <button
+                          disabled={
+                            item.quantity === 1 || updatingItemId === item._id
+                          }
+                          onClick={() =>
+                            handleUpdateQuantityCart(item._id, "decrement")
+                          }
+                          className="px-3 py-1 bg-gray-100 rounded-l-lg hover:bg-gray-200 disabled:opacity-40"
+                        >
+                          {updatingItemId === item._id ? "..." : "-"}
+                        </button>
 
-
-                      <div className="mt-2 flex items-center gap-2">
-
-                        <span className="font-semibold text-lg">
-                          ₹{item.price}
+                        <span className="px-3 py-1 bg-gray-100">
+                          {item.quantity}
                         </span>
 
-                        <span className="text-sm text-gray-400 line-through">
-                          ₹{item.mrp}
-                        </span>
-
+                        <button
+                          disabled={updatingItemId === item._id}
+                          onClick={() =>
+                            handleUpdateQuantityCart(item._id, "increment")
+                          }
+                          className="px-3 py-1 bg-gray-100 rounded-r-lg hover:bg-gray-200 disabled:opacity-40"
+                        >
+                          {updatingItemId === item._id ? "..." : "+"}
+                        </button>
                       </div>
 
+                      <div className="flex gap-2 m-2 items-center">
+                        <div className="font-semibold">₹{item.price}</div>
+                        <div className="text-xs  line-through text-gray-500">
+                          ₹{item.mrp}
+                        </div>
+                      </div>
                     </div>
-
-
-                    {/* QTY CONTROL */}
-                    <div className="flex items-center">
-
-                      <button
-                        onClick={() =>
-                          checkoutType === "CART"
-                            ? handleUpdateQuantityCart(item._id, "decrement")
-                            : decrementQty()
-                        }
-                        disabled={item.quantity === 1}
-                        className="px-3 py-1 bg-gray-100 rounded-l-lg hover:bg-gray-200 disabled:opacity-40"
-                      >
-                        -
-                      </button>
-
-                      <span className="px-3 py-1 bg-gray-100">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          checkoutType === "CART"
-                            ? handleUpdateQuantityCart(item._id, "increment")
-                            : incrementQty()
-                        }
-                        className="px-3 py-1 bg-gray-100 rounded-r-lg hover:bg-gray-200"
-                      >
-                        +
-                      </button>
-
-                    </div>
-
                   </div>
-
 
                   {array.length - 1 !== index && (
                     <div className="h-px bg-gray-200 my-4" />
                   )}
-
                 </div>
               ))
-
             ) : (
-
-              <p className="text-center text-gray-500">
-                Cart is empty
-              </p>
-
+              <p className="text-center text-gray-500">Cart is empty</p>
             )}
-
           </div>
-
-
-
           {/* ADDRESS */}
           <div className="bg-white rounded-2xl shadow p-6">
-
             <div className="flex justify-between items-center mb-4">
-
-              <h2 className="text-xl font-semibold">
-                Delivery Address
-              </h2>
+              <h2 className="text-xl font-semibold">Delivery Address</h2>
 
               {previewData?.address && (
                 <button
@@ -365,238 +252,138 @@ const Checkout = () => {
                   Change
                 </button>
               )}
-
             </div>
 
-
-            {/* ADDRESS FOUND */}
             {previewData?.address ? (
-
               <div className="space-y-1">
-
                 <p className="font-medium text-gray-900">
                   {previewData.address.fullName}
                 </p>
 
                 <p className="text-sm text-gray-600 leading-relaxed">
-
-                  {previewData.address.addressLine1}
-
-                  {previewData.address.addressLine2 &&
-                    `, ${previewData.address.addressLine2}`}
-
-                  {previewData.address.landmark &&
-                    `, Near ${previewData.address.landmark}`}
-
-                  <br />
-
-                  {previewData.address.city}, {previewData.address.state}
-                  {" "}– {previewData.address.pincode}
-
-                  <br />
-
-                  India
-
+                  {previewData.address.addressLine1},{previewData.address.city},
+                  {previewData.address.state} - {previewData.address.pincode}
                 </p>
 
                 <p className="text-sm text-gray-600">
                   Phone: {previewData.address.phone}
                 </p>
-
-                {previewData.address.alternatePhone && (
-                  <p className="text-sm text-gray-600">
-                    Alt: {previewData.address.alternatePhone}
-                  </p>
-                )}
-
-
-                {/* DEFAULT BADGE */}
-                {previewData.address.isDefault && (
-                  <span className="inline-block mt-2 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                    Default Address
-                  </span>
-                )}
-
               </div>
-
             ) : (
-
-              /* NO ADDRESS */
               <div
-                // onClick={() => navigate("/profile/addresses/add?redirect=/checkout")}
-                onClick={() => {
-                  const redirectUrl =
-                    location.pathname + location.search;
-
+                onClick={() =>
                   navigate(
-                    `/profile/addresses/add?redirect=${encodeURIComponent(redirectUrl)}`
-                  );
-                }}
-
+                    `/profile/addresses/add?redirect=${encodeURIComponent(
+                      location.pathname + location.search,
+                    )}`,
+                  )
+                }
                 className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition"
               >
-
-                <p className="text-gray-500 mb-1">
-                  No address found
-                </p>
-
-                <p className="text-indigo-600 font-medium">
-                  + Add New Address
-                </p>
-
+                <p className="text-gray-500 mb-1">No address found</p>
+                <p className="text-indigo-600 font-medium">+ Add New Address</p>
               </div>
-
             )}
-
           </div>
-
-
-
-
           {/* PAYMENT */}
           <div className="bg-white rounded-2xl shadow p-6">
-
-            <h2 className="text-xl font-semibold mb-4">
-              Payment Method
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
 
             <div className="space-y-4">
-
               <label className="flex items-center gap-3 cursor-pointer text-gray-800">
-
                 <input
                   type="radio"
                   name="payment"
                   value="cod"
                   onChange={(e) => setPaymentMode(e.target.value)}
                 />
-
                 <span>Cash on Delivery</span>
-
               </label>
-
 
               <label className="flex items-center gap-3 cursor-pointer text-gray-800">
-
-                <input type="radio"
+                <input
+                  type="radio"
                   name="payment"
                   value="online"
-                  onChange={(e) => setPaymentMode(e.target.value)} />
-
+                  onChange={(e) => setPaymentMode(e.target.value)}
+                />
                 <span>Online Payment</span>
-
               </label>
-
             </div>
-
           </div>
-
         </div>
 
-
         {/* RIGHT SUMMARY */}
-        {previewData?.cartSummary?.total > 0 && (
-
+        {pageLoading ? (
           <div className="col-span-12 lg:col-span-4">
-
-            <div className="bg-white rounded-2xl shadow p-6 sticky top-24 space-y-4">
-
-              <h2 className="text-xl font-semibold">
-                Order Summary
-              </h2>
-
-
-              <Row
-                label="Subtotal"
-                value={previewData.cartSummary.subtotal}
-              />
-
-              <Row
-                label="Discount"
-                value={-previewData.cartSummary.discount}
-                green
-              />
-
-              <Row
-                label="Delivery"
-                value={previewData.cartSummary.deliveryCharge}
-              />
-
-
-              <div className="h-px bg-gray-200" />
-
-
-              <div className="flex justify-between text-lg font-semibold">
-
-                <span>Total</span>
-
-                <span>
-                  ₹{previewData.cartSummary.finalTotal}
-                </span>
-
-              </div>
-
-
-              <p className="text-xs text-gray-500 text-right">
-                Inclusive of all taxes
-              </p>
-
-
-
-
-              <button
-                onClick={handlePlaceOrder}
-                disabled={loading || !isCheckoutValid}
-                className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2
-    ${loading || !isCheckoutValid
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  }
-  `}
-              >
-                {loading && (
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                )}
-
-                {loading ? "Placing Order..." : "Place Order"}
-              </button>
-
-
-
-
-            </div>
-
+            <CartSummarySkeleton />
           </div>
-        )}
+        ) : (
+          previewData?.cartSummary?.total > 0 && (
+            <div className="col-span-12 lg:col-span-4">
+              <div className="bg-white rounded-2xl shadow p-6 sticky top-24 space-y-4">
+                <h2 className="text-xl font-semibold">Order Summary</h2>
 
+                <Row
+                  label="Subtotal"
+                  value={previewData.cartSummary.subtotal}
+                />
+                <Row
+                  label="Discount"
+                  value={-previewData.cartSummary.discount}
+                  green
+                />
+                <Row
+                  label="Delivery"
+                  value={previewData.cartSummary.deliveryCharge}
+                />
+
+                <div className="h-px bg-gray-200" />
+
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span>₹{previewData.cartSummary.finalTotal}</span>
+                </div>
+
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={loading || !isCheckoutValid}
+                  className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2
+                  ${
+                    loading || !isCheckoutValid
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  }
+                `}
+                >
+                  {loading && (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
+                  {loading ? "Placing Order..." : "Place Order"}
+                </button>
+              </div>
+            </div>
+          )
+        )}
       </div>
 
-
-
+      {/* 🔥 TOAST */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-2 rounded-full shadow-lg text-sm">
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
-
-
-
-}
+};
 
 export default Checkout;
 
-
-
-
-
 const Row = ({ label, value, green }) => (
   <div className="flex justify-between text-sm">
-
-    <span className="text-gray-500">
-      {label}
-    </span>
-
+    <span className="text-gray-500">{label}</span>
     <span className={`font-medium ${green ? "text-green-500" : ""}`}>
-      ₹{Math.abs(value)}
+      ₹{Math.abs(value || 0)}
     </span>
-
   </div>
 );
-
