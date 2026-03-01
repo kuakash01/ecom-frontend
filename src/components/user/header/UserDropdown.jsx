@@ -45,8 +45,10 @@ function UserDropdown({ userData }) {
         <div>
             <button type="button" ref={dropdownRef} className="cursor-pointer " onClick={handleToggle}>
                 <div className="flex gap-2 items-center">
-                    <div className="w-10 h-10 rounded-full">
-                        <img src={userData?.profilePicture || null} alt="pro" className="w-full h-full object-cover rounded-full" />
+                    <div className="w-10 h-10 rounded-full mx-2">
+                        <img src={userData?.profilePicture || `${import.meta.env.VITE_BASE_URL}/icons/userProfile.jpg`}
+                        alt="profile"
+                        className="w-full h-full object-cover rounded-full" />
                     </div>
 
                     {/* <div>

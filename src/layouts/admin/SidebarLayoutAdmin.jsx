@@ -35,6 +35,7 @@ function SidebarLayoutAdmin() {
         { name: "Orders", pathName: "/admin/orders" },
         { name: "Colors", pathName: "/admin/colors" },
         { name: "Sizes", pathName: "/admin/sizes" },
+        { name: "Tax", pathName: "/admin/tax" },
       ],
     },
     {

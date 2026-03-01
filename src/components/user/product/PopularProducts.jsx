@@ -188,7 +188,7 @@ function PopularProducts() {
 
 
               <Link
-                to="/products"
+                to="/shop?sort=popular"
                 className="
                   flex-shrink-0
 

@@ -52,6 +52,7 @@ function Product() {
     try {
       const res = await api.get(`/products/${productId}`);
       setProductDetail(res.data.data);
+      console.log("Product details:", res.data.data);
     } catch (err) {
       console.error("Product fetch error:", err);
     }
@@ -325,7 +326,7 @@ function Product() {
 
 
   return (
-    <div className="w-full bg-white py-8">
+    <div className="w-full bg-white py-8 px-0 lg:px-16">
 
       <div className="max-w-[1400px] mx-auto px-4">
 
@@ -333,10 +334,10 @@ function Product() {
 
 
           {/* ================= IMAGES ================= */}
-          <div className="col-span-12 lg:col-span-7">
+          <div className="col-span-12 lg:col-span-7 ">
 
 
-            {/* ===== MOBILE SLIDER ===== */}
+            
             {/* ===== MOBILE SLIDER ===== */}
             <div className="lg:hidden">
 
@@ -349,7 +350,7 @@ function Product() {
       overflow-x-auto
       scroll-smooth
       snap-x snap-mandatory
-
+    rounded-xl
       hide-scrollbar
     "
                 onScroll={(e) => {
@@ -370,7 +371,7 @@ function Product() {
           snap-center
 
           bg-gray-100
-          rounded-xl
+          
           overflow-hidden
         "
                   >
@@ -379,8 +380,7 @@ function Product() {
                       alt=""
                       className="
             w-full
-            aspect-square
-            object-cover
+            object-contain
           "
                     />
                   </div>
@@ -434,8 +434,8 @@ function Product() {
                     alt=""
                     className="
                     w-full
-                    aspect-square
-                    object-cover
+            
+                    object-contain
                     transition-transform duration-500
                     group-hover:scale-105
                   "
@@ -453,7 +453,7 @@ function Product() {
           {/* ================= PRODUCT INFO ================= */}
           <div className="col-span-12 lg:col-span-5">
 
-            <div className="space-y-8">
+            <div className="space-y-8 ">
 
 
               {/* Title */}

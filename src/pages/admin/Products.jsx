@@ -39,10 +39,6 @@ function Products() {
 
   const [mode, setMode] = useState("list"); // add or edit mode
 
-  // image modal states
-  const [showModal, setShowModal] = useState(false);
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [galleryPreviews, setGalleryPreviews] = useState([]);
 
 
   const handleDeleteItem = async (item) => {
@@ -71,13 +67,6 @@ function Products() {
   }
 
 
-
-
-  const handleOpenImagePreview = (thumbnail, gallery) => {
-    setThumbnailPreview(thumbnail);
-    setGalleryPreviews(gallery);
-    setShowModal(true);
-  }
 
   // function to set new arrivals
   const handleSetNewArrivals = async (e, itemId, newArrivalStatus) => {
@@ -180,7 +169,7 @@ function Products() {
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {index + 1}
                     </TableCell>
-                    <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    <TableCell className="sm:px-6  px-4 py-3 w-54 text-wrap text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       <div>{item.title}</div>
                     </TableCell>
 
@@ -191,38 +180,14 @@ function Products() {
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400 w-32">
                       {item.thumbnail?.url && <div>
                         <img
-                          className="w-24 aspect-square object-cover"
+                          className="w-24 object-contai"
                           src={`${item.thumbnail?.url}`}
                           alt=""
                         />
                       </div>}
                     </TableCell >
 
-                    {/* <TableCell className="sm:px-6 px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400 w-32">
-                      {item.thumbnail?.url && (
-                        <div
-                          className="relative group w-fit"
-                          onClick={() =>
-                            handleOpenImagePreview(
-                              item.thumbnail?.url,
-                              item.gallery.map((img) => img.url)
-                            )
-                          }
-                        >
-
-                          <img
-                            className="w-24 aspect-square object-cover rounded-md shadow-sm transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-                            src={`${item.gallery[0]?.url}`}
-                            alt="Thumbnail"
-                          />
-
-                          
-                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 rounded-md transition-opacity duration-300 flex items-center justify-center">
-                            <span className="text-white text-[11px] font-medium">Preview</span>
-                          </div>
-                        </div>
-                      )}
-                    </TableCell> */}
+                   
                     <TableCell className="sm:px-6  px-4 py-3 text-xs text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       <div>{item.category.slug}</div>
                     </TableCell>
@@ -258,13 +223,7 @@ function Products() {
       {mode === "add" && <AddProduct setMode={setMode} revalidator={revalidator} />}
       {mode === "edit" && <EditProduct setMode={setMode} currentEditDetails={currentEditDetails} revalidator={revalidator} />}
 
-      {/* image modal */}
-      <ImagePreviewModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        thumbnail={thumbnailPreview}
-        gallery={galleryPreviews}
-      />
+   
     </div>
   );
 }

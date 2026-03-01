@@ -68,10 +68,9 @@ function AppLayout() {
   return (
     <div className="  bg-white dark:bg-black/30 relative ">
       {/* Sidebar */}
-      {!isMobileOpen && <div className="relative z-50">
-        {/* <div className="topbar  bg-black text-white p-1">topbar</div> */}
-      </div>}
+      <div className="relative z-50">
         <AnnouncementBar />
+      </div>
       <div className="sticky top-0 z-30 shadow-lg">
         <HeaderLayout />
       </div>
@@ -80,7 +79,7 @@ function AppLayout() {
           <div
             className={`transition-all duration-500 ease-in-out w-[300px] ${isSidebarOpen ? "translate-x-0 " : "-translate-x-full"
               } ${isMobileOpen ? "fixed  block top-0  " : "relative hidden"
-              } z-10 `}
+              } z-20 `}
           >
             {/* isSidebarOpen ? "w-[300px]" : "w-0 " */}
             <SidebarLayout />

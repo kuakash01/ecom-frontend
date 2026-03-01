@@ -151,7 +151,7 @@ function ManageCategories() {
         type: "success",
         isLoading: false,
         autoClose: 3000,
-        closeButton:true
+        closeButton: true
       });
       revalidator.revalidate();
     } catch (error) {
@@ -161,11 +161,23 @@ function ManageCategories() {
         type: "error",
         isLoading: false,
         autoClose: 3000,
-        closeButton:true
+        closeButton: true
       });
     }
   };
 
+
+  const handleAddCategory = (state) => {
+    reset({
+      id: "",
+      name:"",
+      description: "",
+      slug: "",
+      parent: "",
+      image: null
+    });
+    setAddNewCategory(state);
+  };
 
 
   if (loaderData.status === 'failed') {
@@ -182,7 +194,7 @@ function ManageCategories() {
               Manage Categories
             </h1>
             <button
-              onClick={() => setAddNewCategory(true)}
+              onClick={() => handleAddCategory(true)}
               className="bg-black px-4 py-2 text-white rounded-lg shadow-md cursor-pointer hover:bg-gray-800 transition-colors duration-300"
             >
               + Add New Category
@@ -263,7 +275,7 @@ function ManageCategories() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Add New Category</h2>
             <button
-              onClick={() => setAddNewCategory(false)}
+              onClick={() => handleAddCategory(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-black cursor-pointer"
             >
               ✕
@@ -365,7 +377,7 @@ function ManageCategories() {
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => setAddNewCategory(false)}
+                onClick={() => handleAddCategory(false)}
                 className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
               >
                 Cancel

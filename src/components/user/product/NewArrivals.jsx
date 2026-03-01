@@ -188,7 +188,7 @@ function NewArrivals() {
 
               {/* Explore More */}
               <Link
-                to="/products"
+                to="/shop?sort=newArrivals"
                 className="
                   flex-shrink-0
 

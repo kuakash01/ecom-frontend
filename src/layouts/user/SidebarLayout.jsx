@@ -97,7 +97,7 @@ function SidebarLayout() {
         <div
           className="
             flex items-center justify-between
-            px-4 py-4
+            px-4 py-6
 
             border-b border-gray-100
             dark:border-brand-dark-600
@@ -107,9 +107,9 @@ function SidebarLayout() {
           "
         >
 
-          <h3 className="font-semibold text-gray-900 dark:text-white">
+          {/* <h3 className="font-semibold text-gray-900 dark:text-white">
             Categories
-          </h3>
+          </h3> */}
 
           <button
             onClick={closeSidebar}

@@ -279,7 +279,7 @@ function SortableImage({ img, index, removeImage }) {
       <img
         src={img.preview}
         alt="preview"
-        className="w-full h-32 object-cover"
+        className="w-full object-cover"
       />
 
       {/* remove button */}

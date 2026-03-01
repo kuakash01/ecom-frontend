@@ -16,7 +16,7 @@ export default function AnnouncementPage() {
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const res = await api.get("/announcement");
+        const res = await api.get("/admin/announcement");
         if (res.data?.data) {
           const data = res.data.data;
           setMessage(data.message || "");
@@ -43,7 +43,7 @@ export default function AnnouncementPage() {
       setLoading(true);
       setError(false);
 
-      await api.post("/announcement/save", {
+      await api.post("/admin/announcement/save", {
         message,
         backgroundColor,
         textColor,
